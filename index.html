@@ -27,7 +27,7 @@
 
         .input-group { margin-bottom: 20px; }
         .input-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #b8c1ec; font-size: 14px; }
-        .input-group input[type="text"], .input-group input[type="number"], .input-group input[type="date"], .input-group select, .input-group textarea { width: 100%; padding: 12px; background: #121417; border: 1px solid #3d4450; color: #ffffff; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        .input-group input[type="text"], .input-group input[type="number"], .input-group input[type="date"], .input-group select, .input-group textarea, .input-group input[type="file"] { width: 100%; padding: 12px; background: #121417; border: 1px solid #3d4450; color: #ffffff; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
         .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: #ff6600; outline: none; }
         .input-group textarea { resize: vertical; min-height: 80px; }
 
@@ -71,6 +71,8 @@
         #output h1, #output h2, #output h3 { margin-top: 0; color: #ffffff; }
         #output ul, #output ol { padding-left: 20px; margin-bottom: 15px; }
         #output p { margin-bottom: 15px; color: #cccccc; }
+        #output a { color: #ff6600; text-decoration: none; font-weight: bold; }
+        #output a:hover { text-decoration: underline; }
 
         hr { border: 0; border-top: 1px dashed #2d323b; margin: 30px 0; }
         
@@ -143,7 +145,7 @@
             </div>
             <div class="input-group" style="margin-bottom:10px; grid-column: span 2;">
                 <label style="font-size:13px;">MOT Due Date:</label>
-                <input type="date" id="garageMotDate" style="width:100%; padding:12px; background:#121417; border:1px solid #3d4450; color:#fff; border-radius:6px; box-sizing:border-box; font-size:16px;">
+                <input type="date" id="garageMotDate">
             </div>
         </div>
         <div style="display: flex; gap: 10px;">
@@ -154,7 +156,7 @@
 
     <!-- 🔧 LOG A SERVICE WRENCH SESSION PANEL -->
     <div id="serviceLogPanel" class="panel">
-        <h3>🔧 Log a Wrench Session (Service Entry)</h3>
+        <h3>🔧 Log a Wrench Session</h3>
         <div class="input-group" style="margin-bottom:10px;">
             <label style="font-size:13px;">Maintenance Type:</label>
             <input type="text" id="serviceTypeInput" placeholder="e.g., Oil & Filter Change, Front Tyre Replacement">
@@ -162,7 +164,7 @@
         <div class="profile-grid">
             <div class="input-group" style="margin-bottom:10px;">
                 <label style="font-size:13px;">Service Date:</label>
-                <input type="date" id="serviceDateInput" style="width:100%; padding:12px; background:#121417; border:1px solid #3d4450; color:#fff; border-radius:6px; box-sizing:border-box; font-size:16px;">
+                <input type="date" id="serviceDateInput">
             </div>
             <div class="input-group" style="margin-bottom:10px;">
                 <label style="font-size:13px;">Mileage at Service:</label>
@@ -174,6 +176,25 @@
             <textarea id="serviceNotesInput" placeholder="Used 10W-40 fully synthetic. New bead breaker made the tyre swap super easy..."></textarea>
         </div>
         <button class="btn btn-small" id="saveServiceBtn">Save Service Entry</button>
+    </div>
+
+    <!-- 📁 SECURE DIGITAL WALLET PANEL -->
+    <div id="digitalWalletPanel" class="panel">
+        <h3>📁 Secure Digital Wallet</h3>
+        <p style="font-size: 13px; color: #99aab5; margin-top: 0; margin-bottom: 15px;">Securely store V5C logbooks, receipts, and insurance documents.</p>
+        <div class="input-group" style="margin-bottom:10px;">
+            <select id="walletCategory">
+                <option value="Receipts & Parts">🧾 Receipts & Parts</option>
+                <option value="V5C Logbook">📜 V5C Logbook</option>
+                <option value="Insurance">🛡️ Insurance</option>
+                <option value="Manuals">🛠️ Manuals & Diagrams</option>
+            </select>
+        </div>
+        <div class="input-group" style="margin-bottom:15px;">
+            <input type="file" id="walletFile" />
+        </div>
+        <button class="btn btn-small" id="uploadWalletBtn" style="width: 100%;">Upload to Secure Vault</button>
+        <p id="uploadStatus" style="font-size: 13px; margin-top: 10px; text-align: center; font-weight: bold;"></p>
     </div>
 
     <p style="color: #99aab5; margin-bottom: 20px;">Enter details, dictate your issue, or upload a photo for AI diagnostic assistance.</p>
@@ -248,6 +269,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDxFwpHqfw4KzYEfixot_zp31LZca9i6A4",
@@ -262,6 +284,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
     const provider = new GoogleAuthProvider();
 
     const GEMINI_API_KEY = "AQ.Ab8RN6KQpKyIrghlVvMdEzd1z-BAfSR91rUzM-4Lz2UkOn0SgA"
@@ -296,6 +319,7 @@
                 document.getElementById('heroSection').style.display = 'none';
                 document.getElementById('garageProfilePanel').style.display = 'block';
                 document.getElementById('serviceLogPanel').style.display = 'block';
+                document.getElementById('digitalWalletPanel').style.display = 'block';
                 await loadUserBikes(user.uid);
             } else {
                 document.getElementById('heroSection').style.display = 'block';
@@ -471,6 +495,56 @@
         }
     });
 
+    // Handle Secure Wallet Upload
+    document.getElementById('uploadWalletBtn').addEventListener('click', async () => {
+        const fileInput = document.getElementById('walletFile');
+        const file = fileInput.files[0];
+        const category = document.getElementById('walletCategory').value;
+        const statusText = document.getElementById('uploadStatus');
+        
+        if (!file) {
+            statusText.style.color = "#ff4d4d";
+            statusText.innerText = "Please select a document first.";
+            return;
+        }
+
+        if (!currentUser) {
+            statusText.style.color = "#ff4d4d";
+            statusText.innerText = "You must be logged in to access the vault.";
+            return;
+        }
+
+        statusText.style.color = "#e65c00";
+        statusText.innerText = "Encrypting and uploading...";
+        
+        try {
+            const fileRef = ref(storage, `users/${currentUser.uid}/${Date.now()}_${file.name}`);
+            await uploadBytes(fileRef, file);
+            const downloadURL = await getDownloadURL(fileRef);
+            
+            await addDoc(collection(db, "users", currentUser.uid, "garageLogs"), {
+                type: "Wallet Document",
+                bike: document.getElementById('garageBikeModel').value || "My Bike",
+                category: category,
+                fileName: file.name,
+                fileURL: downloadURL,
+                query: `Uploaded: ${category} (${file.name})`,
+                response: `Document securely stored in Vault. [Click here to view/download](${downloadURL})`,
+                date: new Date().toLocaleDateString(),
+                timestamp: new Date().getTime()
+            });
+            
+            statusText.style.color = "#2ecc71";
+            statusText.innerText = "✅ Document safely secured in your wallet!";
+            fileInput.value = ""; 
+            loadHistory(currentUser.uid);
+        } catch (error) {
+            console.error("Upload failed", error);
+            statusText.style.color = "#ff4d4d";
+            statusText.innerText = "Error uploading document.";
+        }
+    });
+
     const loginBtn = document.getElementById('loginBtn');
     const heroLoginBtn = document.getElementById('heroLoginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
@@ -496,6 +570,7 @@
             document.getElementById('heroSection').style.display = 'block';
             document.getElementById('garageProfilePanel').style.display = 'none';
             document.getElementById('serviceLogPanel').style.display = 'none';
+            document.getElementById('digitalWalletPanel').style.display = 'none';
             document.getElementById('historyContainer').style.display = 'none';
             document.getElementById('statusCard').style.display = 'none';
         }
@@ -680,7 +755,11 @@
             cachedLogs.forEach((item) => {
                 const div = document.createElement('div');
                 div.className = 'history-item';
-                const label = item.type === 'manual_service' ? '🔧 [Wrench Log]' : '🤖 [AI Diagnosis]';
+                
+                let label = '🤖 [AI Diagnosis]';
+                if (item.type === 'manual_service') label = '🔧 [Wrench Log]';
+                if (item.type === 'Wallet Document') label = '📁 [Secure Vault]';
+
                 div.innerHTML = `<strong>${item.bike}</strong> - <em>${label} ${item.query}</em> (${item.date})`;
                 
                 div.onclick = () => {
@@ -712,7 +791,7 @@
                 const isManual = log.type === 'manual_service';
                 logsHtml += `
                     <div style="margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">
-                        <p style="margin: 0 0 5px 0;"><strong>Date:</strong> ${log.date} | <strong>${isManual ? 'Service Performed' : 'AI Diagnostic'}:</strong> ${log.query}</p>
+                        <p style="margin: 0 0 5px 0;"><strong>Date:</strong> ${log.date} | <strong>${isManual ? 'Service Performed' : 'Log / Diagnostic'}:</strong> ${log.query}</p>
                         ${isManual ? `<p style="margin: 0 0 5px 0;"><strong>Mileage at Service:</strong> ${log.mileage} miles</p>` : ''}
                         <div style="background: #f9f9f9; padding: 10px; border-radius: 4px; font-size: 13px; color: #444; margin-top: 5px;">
                             ${isManual ? log.response : marked.parse(log.response)}
