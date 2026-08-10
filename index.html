@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShedLens - AI Mechanic</title>
+    
+    <!-- Marked.js library for formatting Gemini markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        /* 🌙 "Night Garage" Industrial Aesthetic */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121417; color: #e0e0e0; margin: 0; padding: 20px; }
+        .container { max-width: 650px; margin: 0 auto; background: #1c1f24; padding: 30px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); border: 1px solid #2d323b; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d323b; padding-bottom: 15px; margin-bottom: 25px; }
+        .header h1 { margin: 0; font-size: 26px; display: flex; align-items: center; gap: 10px; color: #ffffff; letter-spacing: 0.5px; }
+        .auth-controls { display: flex; align-items: center; gap: 15px; }
+        .user-name { color: #ff6600; font-weight: bold; }
+        
+        /* High-Impact Hero Section (Guests Only) */
+        #heroSection { text-align: center; padding: 20px 10px 30px 10px; border-bottom: 1px solid #2d323b; margin-bottom: 25px; }
+        #heroSection h2 { color: #ffffff; font-size: 24px; margin-bottom: 10px; }
+        #heroSection p { color: #99aab5; font-size: 15px; line-height: 1.5; margin-bottom: 20px; }
+        .discipline-tags { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+        .tag { background: #2d323b; color: #ff6600; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid #3d4450; }
+
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #b8c1ec; font-size: 14px; }
+        .input-group input[type="text"], .input-group input[type="number"], .input-group input[type="date"], .input-group select, .input-group textarea { width: 100%; padding: 12px; background: #121417; border: 1px solid #3d4450; color: #ffffff; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: #ff6600; outline: none; }
+        .input-group textarea { resize: vertical; min-height: 80px; }
+
+        /* Panels & Visual Status Cards */
+        .panel { background: #23272f; border: 1px solid #3d4450; padding: 20px; border-radius: 8px; margin-bottom: 25px; display: none; }
+        .panel h3 { margin-top: 0; color: #ff6600; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+        .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        
+        .status-card { background: #1c1f24; border-left: 5px solid #ff6600; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .status-card.healthy { border-left-color: #2ecc71; color: #2ecc71; }
+        .status-card.warning { border-left-color: #f1c40f; color: #f1c40f; }
+        .status-card.urgent { border-left-color: #e74c3c; color: #e74c3c; background: #2c1a1a; }
+
+        /* Image Preview */
+        #imagePreviewContainer { margin-top: 10px; display: none; text-align: center;}
+        #imagePreview { max-width: 100%; max-height: 200px; border-radius: 6px; border: 1px solid #3d4450; padding: 5px; background: #121417;}
+
+        /* Buttons */
+        .btn { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
+        .btn-dark { background: #2d323b; color: white; border: 1px solid #3d4450; }
+        .btn-dark:hover { background: #3d4450; }
+        .btn-orange { background: #ff6600; color: white; width: 100%; padding: 14px; font-size: 18px; margin-top: 10px; box-shadow: 0 4px 12px rgba(255,102,0,0.3); }
+        .btn-orange:hover { background: #e05b00; }
+        .btn-small { background: #ff6600; color: white; padding: 8px 12px; font-size: 13px; margin-top: 10px; }
+        .btn-pdf { background: #2d323b; color: white; width: 100%; padding: 12px; font-size: 15px; margin-top: 15px; display: flex; justify-content: center; align-items: center; gap: 8px; border: 1px solid #3d4450; }
+        .btn-pdf:hover { background: #3d4450; }
+        
+        /* Flexbox for Textarea + Mic */
+        .textarea-wrapper { position: relative; }
+        .mic-btn { position: absolute; right: 10px; bottom: 10px; background: none; border: none; font-size: 20px; cursor: pointer; }
+        .listening { background: #ff4444 !important; border-radius: 50%; color: white; animation: pulse 1s infinite; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* AI Output Box */
+        #output { margin-top: 25px; padding: 20px; background-color: #121417; border-left: 5px solid #ff6600; border-radius: 4px; font-size: 14px; line-height: 1.6; display: none; border: 1px solid #2d323b; }
+        #output h1, #output h2, #output h3 { margin-top: 0; color: #ffffff; }
+        #output ul, #output ol { padding-left: 20px; margin-bottom: 15px; }
+        #output p { margin-bottom: 15px; color: #cccccc; }
+
+        hr { border: 0; border-top: 1px dashed #2d323b; margin: 30px 0; }
+        
+        /* History Items */
+        .history-item { background: #23272f; border: 1px solid #3d4450; padding: 12px 15px; border-radius: 6px; margin-bottom: 10px; cursor: pointer; font-size: 13px; color: #cccccc; }
+        .history-item:hover { border-color: #ff6600; background: #2a2e39; }
+
+        /* Upgrade Modal */
+        #upgradeModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: #1c1f24; border: 1px solid #3d4450; padding: 30px; border-radius: 10px; max-width: 400px; text-align: center; font-family: sans-serif; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .modal-content h2 { color: #ff6600; }
+        .modal-content p { color: #b8c1ec; }
+        .stripe-btn { display: inline-block; background: #ff6600; color: white; padding: 14px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 15px; width: 80%; transition: 0.2s; }
+        .stripe-btn:hover { background: #e05b00; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1>☁️ ShedLens</h1>
+        <div class="auth-controls" id="authSection">
+            <button class="btn btn-dark" id="loginBtn">Sign in with Google</button>
+            <span class="user-name" id="userNameDisplay" style="display:none;"></span>
+            <button class="btn btn-dark" id="logoutBtn" style="display:none;">Logout</button>
+        </div>
+    </div>
+
+    <!-- 🚀 HIGH-IMPACT MARKETING HERO (Guests Only) -->
+    <div id="heroSection">
+        <h2>Your AI-Powered Garage Companion</h2>
+        <p>Expert diagnostic assistance and digital logbooks built for every riding discipline.</p>
+        <div class="discipline-tags">
+            <span class="tag">MX & Enduro</span>
+            <span class="tag">Sport & Track</span>
+            <span class="tag">Adventure & Touring</span>
+        </div>
+        <button class="btn btn-orange" id="heroLoginBtn" style="width: auto; padding: 10px 24px; font-size: 16px;">Sign in with Google to Build Your Garage</button>
+    </div>
+
+    <!-- 🚦 DYNAMIC VISUAL STATUS CARD -->
+    <div id="statusCard" class="status-card"></div>
+
+    <!-- 🏍️ MULTI-BIKE SELECTOR & PROFILE PANEL -->
+    <div id="garageProfilePanel" class="panel">
+        <h3>🏍️ My Garage & Multi-Bike Profile</h3>
+        <div class="input-group" style="margin-bottom:15px;">
+            <label style="font-size:13px;">Select Active Motorcycle:</label>
+            <select id="bikeSelector">
+                <option value="">-- Add or Select a Bike --</option>
+            </select>
+        </div>
+        <div class="profile-grid">
+            <div class="input-group" style="margin-bottom:10px;">
+                <label style="font-size:13px;">Bike Nickname / Name:</label>
+                <input type="text" id="garageBikeName" placeholder="e.g., The Mule">
+            </div>
+            <div class="input-group" style="margin-bottom:10px;">
+                <label style="font-size:13px;">Make, Model & Year:</label>
+                <input type="text" id="garageBikeModel" placeholder="Yamaha Ténéré 700 (2023)">
+            </div>
+            <div class="input-group" style="margin-bottom:10px;">
+                <label style="font-size:13px;">Color:</label>
+                <input type="text" id="garageColor" placeholder="e.g., Icon Blue">
+            </div>
+            <div class="input-group" style="margin-bottom:10px;">
+                <label style="font-size:13px;">Current Mileage:</label>
+                <input type="number" id="garageMileage" placeholder="6150">
+            </div>
+            <div class="input-group" style="margin-bottom:10px; grid-column: span 2;">
+                <label style="font-size:13px;">MOT Due Date:</label>
+                <input type="date" id="garageMotDate" style="width:100%; padding:12px; background:#121417; border:1px solid #3d4450; color:#fff; border-radius:6px; box-sizing:border-box; font-size:16px;">
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn btn-small" id="saveProfileBtn">Save / Update Bike</button>
+            <button class="btn btn-small" id="newBikeBtn" style="background: #2d323b;">+ Add New Bike</button>
+        </div>
+    </div>
+
+    <!-- 🔧 LOG A SERVICE WRENCH SESSION PANEL -->
+    <div id="serviceLogPanel" class="panel">
+        <h3>🔧 Log a Wrench Session (Service Entry)</h3>
+        <div class="input-group" style="margin-bottom:10px;">
+            <label style="font-size:13px;">Maintenance Type:</label>
+            <input type="text" id="serviceTypeInput" placeholder="e.g., Oil & Filter Change, Front Tyre Replacement">
+        </div>
+        <div class="profile-grid">
+            <div class="input-group" style="margin-bottom:10px;">
+                <label style="font-size:13px;">Service Date:</label>
+                <input type="date" id="serviceDateInput" style="width:100%; padding:12px; background:#121417; border:1px solid #3d4450; color:#fff; border-radius:6px; box-sizing:border-box; font-size:16px;">
+            </div>
+            <div class="input-group" style="margin-bottom:10px;">
+                <label style="font-size:13px;">Mileage at Service:</label>
+                <input type="number" id="serviceMileageInput" placeholder="6020">
+            </div>
+        </div>
+        <div class="input-group" style="margin-bottom:10px;">
+            <label style="font-size:13px;">Custom Shed Notes (Tools used, oil brand, tips):</label>
+            <textarea id="serviceNotesInput" placeholder="Used 10W-40 fully synthetic. New bead breaker made the tyre swap super easy..."></textarea>
+        </div>
+        <button class="btn btn-small" id="saveServiceBtn">Save Service Entry</button>
+    </div>
+
+    <p style="color: #99aab5; margin-bottom: 20px;">Enter details, dictate your issue, or upload a photo for AI diagnostic assistance.</p>
+
+    <!-- General Diagnostic Inputs -->
+    <div class="input-group" id="generalBikeGroup">
+        <label>Motorcycle (Make, Model, Year):</label>
+        <input type="text" id="bikeDetails" placeholder="e.g., 2023 Yamaha Tenere 700">
+    </div>
+
+    <div class="input-group" id="generalMileageGroup">
+        <label>Current Mileage:</label>
+        <input type="number" id="bikeMileage" placeholder="e.g., 6150">
+    </div>
+
+    <!-- Upload Photo (Premium Locked) -->
+    <div class="input-group">
+        <label>Upload Photo (Diagnostic Input): ⭐ Pro</label>
+        <input type="file" id="photoInput" accept="image/*">
+        <div id="imagePreviewContainer">
+            <img id="imagePreview" src="" alt="Diagnostic Preview">
+        </div>
+    </div>
+
+    <!-- Text Area & Microphone -->
+    <div class="input-group">
+        <label>What are we looking at / repairing?</label>
+        <div class="textarea-wrapper">
+            <textarea id="issueText" placeholder="My Ténéré 700 has a weird ticking noise..."></textarea>
+            <button class="mic-btn" id="micBtn" title="Dictate Question">🎤 ⭐ Pro</button>
+        </div>
+    </div>
+
+    <!-- Submit Button -->
+    <button class="btn btn-orange" id="diagnoseBtn">Diagnose with ShedLens</button>
+
+    <!-- AI Output -->
+    <div id="output"></div>
+
+    <hr>
+
+    <!-- History Section -->
+    <div class="history-section" id="historyContainer" style="display: none;">
+        <h3>☁️ Private Garage History & Service Log</h3>
+        <p id="historyText" style="color: #99aab5; display: none;">Please sign in to view your history.</p>
+        <div id="historyList"></div>
+        <button class="btn btn-pdf" id="downloadPdfBtn">📄 Download Official Maintenance Report (PDF)</button>
+    </div>
+</div>
+
+<!-- 🛑 STRIPE PAYWALL MODAL 🛑 -->
+<div id="upgradeModal">
+    <div class="modal-content">
+        <h2 style="color:#ff6600; margin-top:0;">⭐ Unlock ShedLens Pro</h2>
+        <p style="color:#b8c1ec; line-height:1.5;">Get unlimited visual diagnostics, voice dictation mode, multi-bike garage management with status alerts, and exportable official service reports.</p>
+        
+        <a href="https://buy.stripe.com/test_6oU6oAf5Xfss8dZ5ct38400" target="_blank" class="stripe-btn">
+            Upgrade Now (£24.99/yr)
+        </a>
+        
+        <br><br>
+        <button onclick="document.getElementById('upgradeModal').style.display='none'" style="background:none; border:none; color:#888; text-decoration:underline; cursor:pointer; font-size:14px; margin-top:15px;">
+            Maybe Later
+        </button>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- ⚙️ LOGIC & CONFIGURATION                   -->
+<!-- ========================================== -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDxFwpHqfw4KzYEfixot_zp31LZca9i6A4",
+        authDomain: "shedlens.firebaseapp.com",
+        projectId: "shedlens",
+        storageBucket: "shedlens.firebasestorage.app",
+        messagingSenderId: "762319249014",
+        appId: "1:762319249014:web:54c1e045506aa312a70957",
+        measurementId: "G-1FLZB9KVX5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    const GEMINI_API_KEY = "AQ.Ab8RN6KQpKyIrghlVvMdEzd1z-BAfSR91rUzM-4Lz2UkOn0SgA"
+
+    window.isProUser = false; 
+    let currentUser = null;
+    let base64ImageData = "";
+    let imageMimeType = "";
+    let recognition = null;
+    let cachedLogs = [];
+    let userBikes = [];
+    let activeBikeId = null;
+
+    window.checkProAccess = function(event) {
+        if (!window.isProUser) {
+            if(event) event.preventDefault(); 
+            document.getElementById('upgradeModal').style.display = 'flex'; 
+            return false;
+        }
+        return true; 
+    };
+
+    async function checkAndCreateUserProfile(user) {
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+            const data = userSnap.data();
+            window.isProUser = data.isPro;
+            
+            if (window.isProUser) {
+                document.getElementById('heroSection').style.display = 'none';
+                document.getElementById('garageProfilePanel').style.display = 'block';
+                document.getElementById('serviceLogPanel').style.display = 'block';
+                await loadUserBikes(user.uid);
+            } else {
+                document.getElementById('heroSection').style.display = 'block';
+            }
+        } else {
+            await setDoc(userRef, {
+                email: user.email,
+                name: user.displayName,
+                isPro: false,
+                joinedAt: new Date()
+            });
+            window.isProUser = false;
+            document.getElementById('heroSection').style.display = 'block';
+        }
+
+        const stripeBtn = document.querySelector('.stripe-btn');
+        if (stripeBtn) {
+            stripeBtn.href = `https://buy.stripe.com/6oU6oAf5Xfss8dZ5ct38400?client_reference_id=${user.uid}`;
+        }
+    }
+
+    async function loadUserBikes(uid) {
+        const bikesRef = collection(db, "users", uid, "bikes");
+        const snapshot = await getDocs(bikesRef);
+        userBikes = [];
+        const selector = document.getElementById('bikeSelector');
+        selector.innerHTML = '<option value="">-- Select a Motorcycle --</option>';
+
+        snapshot.forEach((docSnap) => {
+            const bike = { id: docSnap.id, ...docSnap.data() };
+            userBikes.push(bike);
+            const opt = document.createElement('option');
+            opt.value = bike.id;
+            opt.textContent = `${bike.bikeName || 'Unnamed'} (${bike.bikeModel || 'Model'})`;
+            selector.appendChild(opt);
+        });
+
+        if (userBikes.length > 0) {
+            selector.value = userBikes[0].id;
+            selectBike(userBikes[0].id);
+        } else {
+            await addNewBike(uid, "The Mule", "Yamaha Ténéré 700 (2023)", "Icon Blue", 6150, "");
+        }
+    }
+
+    async function addNewBike(uid, name, model, color, mileage, mot) {
+        const bikesRef = collection(db, "users", uid, "bikes");
+        const newBikeDoc = await addDoc(bikesRef, {
+            bikeName: name,
+            bikeModel: model,
+            color: color,
+            mileage: Number(mileage),
+            motDate: mot
+        });
+        await loadUserBikes(uid);
+        document.getElementById('bikeSelector').value = newBikeDoc.id;
+        selectBike(newBikeDoc.id);
+    }
+
+    function selectBike(bikeId) {
+        activeBikeId = bikeId;
+        const bike = userBikes.find(b => b.id === bikeId);
+        if (!bike) return;
+
+        document.getElementById('garageBikeName').value = bike.bikeName || '';
+        document.getElementById('garageBikeModel').value = bike.bikeModel || '';
+        document.getElementById('garageColor').value = bike.color || '';
+        document.getElementById('garageMileage').value = bike.mileage || '';
+        document.getElementById('garageMotDate').value = bike.motDate || '';
+
+        if(bike.bikeModel) document.getElementById('bikeDetails').value = bike.bikeModel;
+        if(bike.mileage) document.getElementById('bikeMileage').value = bike.mileage;
+
+        updateStatusCard(bike);
+    }
+
+    function updateStatusCard(bike) {
+        const card = document.getElementById('statusCard');
+        let statusHtml = '';
+        let statusClass = 'status-card healthy';
+
+        if (bike.motDate) {
+            const motDate = new Date(bike.motDate);
+            const today = new Date();
+            const diffDays = Math.ceil((motDate - today) / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 0) {
+                statusClass = 'status-card urgent';
+                statusHtml = `🚨 <strong>MOT Expired:</strong> ${bike.bikeName || 'Bike'} MOT expired ${Math.abs(diffDays)} days ago!`;
+            } else if (diffDays <= 30) {
+                statusClass = 'status-card warning';
+                statusHtml = `⚠️ <strong>MOT Due Soon:</strong> ${bike.bikeName || 'Bike'} MOT expires in ${diffDays} days (${bike.motDate}).`;
+            } else {
+                statusHtml = `✅ <strong>Garage Status:</strong> ${bike.bikeName || 'Bike'} MOT is valid until ${bike.motDate}. All systems nominal.`;
+            }
+        } else {
+            statusHtml = `ℹ️ <strong>Garage Status:</strong> Set an MOT due date to track legal inspection status.`;
+        }
+
+        card.innerHTML = statusHtml;
+        card.className = statusClass;
+        card.style.display = 'block';
+    }
+
+    document.getElementById('bikeSelector').addEventListener('change', (e) => {
+        if (e.target.value) selectBike(e.target.value);
+    });
+
+    document.getElementById('newBikeBtn').addEventListener('click', async () => {
+        if (!currentUser) return;
+        const name = prompt("Enter Bike Nickname (e.g., Track Weapon):", "New Bike");
+        if (!name) return;
+        await addNewBike(currentUser.uid, name, "Make / Model", "Color", 0, "");
+    });
+
+    document.getElementById('saveProfileBtn').addEventListener('click', async () => {
+        if (!currentUser || !activeBikeId) return;
+        try {
+            const bikeRef = doc(db, "users", currentUser.uid, "bikes", activeBikeId);
+            const bikeModelVal = document.getElementById('garageBikeModel').value;
+            const mileageVal = Number(document.getElementById('garageMileage').value);
+
+            await setDoc(bikeRef, {
+                bikeName: document.getElementById('garageBikeName').value,
+                bikeModel: bikeModelVal,
+                color: document.getElementById('garageColor').value,
+                mileage: mileageVal,
+                motDate: document.getElementById('garageMotDate').value
+            }, { merge: true });
+
+            document.getElementById('bikeDetails').value = bikeModelVal;
+            document.getElementById('bikeMileage').value = mileageVal;
+
+            alert("Garage Profile successfully saved!");
+            loadUserBikes(currentUser.uid);
+        } catch (e) {
+            console.error("Error saving profile: ", e);
+            alert("Error saving profile.");
+        }
+    });
+
+    document.getElementById('saveServiceBtn').addEventListener('click', async () => {
+        if (!currentUser || !window.isProUser) return;
+        const serviceType = document.getElementById('serviceTypeInput').value.trim();
+        const serviceDate = document.getElementById('serviceDateInput').value;
+        const serviceMileage = document.getElementById('serviceMileageInput').value.trim();
+        const serviceNotes = document.getElementById('serviceNotesInput').value.trim();
+
+        if (!serviceType) {
+            alert("Please enter a maintenance type.");
+            return;
+        }
+
+        try {
+            await addDoc(collection(db, "users", currentUser.uid, "garageLogs"), {
+                type: 'manual_service',
+                bike: document.getElementById('garageBikeModel').value || "My Bike",
+                query: serviceType,
+                response: serviceNotes || "No extra notes provided.",
+                date: serviceDate ? new Date(serviceDate).toLocaleDateString() : new Date().toLocaleDateString(),
+                mileage: serviceMileage || "N/A",
+                timestamp: new Date().getTime()
+            });
+
+            document.getElementById('serviceTypeInput').value = '';
+            document.getElementById('serviceMileageInput').value = '';
+            document.getElementById('serviceNotesInput').value = '';
+            alert("Service entry successfully logged to your Shed Log!");
+            loadHistory(currentUser.uid);
+        } catch (e) {
+            console.error("Error saving service entry: ", e);
+            alert("Error saving service entry.");
+        }
+    });
+
+    const loginBtn = document.getElementById('loginBtn');
+    const heroLoginBtn = document.getElementById('heroLoginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const userNameDisplay = document.getElementById('userNameDisplay');
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            loginBtn.style.display = 'none';
+            logoutBtn.style.display = 'inline-block';
+            userNameDisplay.style.display = 'inline-block';
+            userNameDisplay.textContent = user.displayName + "'s Garage";
+            document.getElementById('heroSection').style.display = 'none';
+            
+            checkAndCreateUserProfile(user);
+            loadHistory(user.uid);
+        } else {
+            currentUser = null;
+            loginBtn.style.display = 'inline-block';
+            logoutBtn.style.display = 'none';
+            userNameDisplay.style.display = 'none';
+            window.isProUser = false;
+            document.getElementById('heroSection').style.display = 'block';
+            document.getElementById('garageProfilePanel').style.display = 'none';
+            document.getElementById('serviceLogPanel').style.display = 'none';
+            document.getElementById('historyContainer').style.display = 'none';
+            document.getElementById('statusCard').style.display = 'none';
+        }
+    });
+
+    loginBtn.addEventListener('click', () => signInWithPopup(auth, provider).catch(e => console.error(e)));
+    heroLoginBtn.addEventListener('click', () => signInWithPopup(auth, provider).catch(e => console.error(e)));
+    logoutBtn.addEventListener('click', () => signOut(auth).catch(e => console.error(e)));
+
+    document.getElementById('photoInput').addEventListener('click', (e) => {
+        if (!window.checkProAccess(e)) return;
+    });
+
+    document.getElementById('photoInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const previewContainer = document.getElementById('imagePreviewContainer');
+        const previewImage = document.getElementById('imagePreview');
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                previewImage.src = event.target.result;
+                previewContainer.style.display = 'block';
+                base64ImageData = event.target.result.split(',')[1];
+                imageMimeType = file.type;
+            }
+            reader.readAsDataURL(file);
+        } else {
+            previewContainer.style.display = 'none';
+            base64ImageData = "";
+            imageMimeType = "";
+        }
+    });
+
+    document.getElementById('micBtn').addEventListener('click', (e) => {
+        if (!window.checkProAccess(e)) return;
+        
+        const voiceBtn = document.getElementById('micBtn');
+        const queryInput = document.getElementById('issueText');
+
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            alert("Voice dictation is not supported in this browser.");
+            return;
+        }
+
+        if (recognition && recognition.isStarted) {
+            recognition.stop();
+            return;
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = function() {
+            recognition.isStarted = true;
+            voiceBtn.classList.add('listening');
+        };
+
+        recognition.onresult = function(event) {
+            if (event.results[0].isFinal) {
+                const transcript = event.results[0][0].transcript;
+                queryInput.value += (queryInput.value ? " " : "") + transcript;
+            }
+        };
+
+        recognition.onend = function() {
+            recognition.isStarted = false;
+            voiceBtn.classList.remove('listening');
+        };
+
+        recognition.onerror = function() {
+            recognition.isStarted = false;
+            voiceBtn.classList.remove('listening');
+        };
+
+        recognition.start();
+    });
+
+    document.getElementById('diagnoseBtn').addEventListener('click', async () => {
+        const bike = document.getElementById("bikeDetails").value.trim();
+        const mileage = document.getElementById("bikeMileage").value.trim();
+        const motDate = document.getElementById("garageMotDate")?.value || "";
+        const userQuery = document.getElementById("issueText").value.trim();
+        const outputDiv = document.getElementById("output");
+
+        if (!base64ImageData && !userQuery) {
+            alert("Please type a question or upload a photo.");
+            return;
+        }
+
+        outputDiv.style.display = "block";
+        outputDiv.innerHTML = "<em>Analyzing request... (Connecting to AI Mechanic Brain)</em>";
+
+        let systemContext = `You are "ShedLens," an expert motorcycle mechanic specializing in MX, enduro, track, adventure, and touring bikes. `;
+        if (bike) systemContext += `The motorcycle is a: ${bike}. `;
+        if (mileage) systemContext += `Current mileage is ${mileage} miles. `;
+        if (motDate) systemContext += `MOT due date is ${motDate}. Factor this into safety and legal inspection reminders if relevant. `;
+        systemContext += `Analyze the image and request. Provide a practical, concise technical diagnosis with torque specs, safety notes, and clear instructions in Markdown. Always adapt pricing and cost estimates into the user's local regional currency (e.g., British Pounds £ for UK riders, Euros € for European riders, and US Dollars $ for US riders based on context).`;
+
+        let parts = [];
+        let textPart = `System: ${systemContext}`;
+        if (userQuery) textPart += `\n\nUser Request: "${userQuery}".`;
+        parts.push({ text: textPart });
+
+        if (base64ImageData && imageMimeType) {
+            parts.push({
+                inlineData: {
+                    mimeType: imageMimeType,
+                    data: base64ImageData
+                }
+            });
+        }
+
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GEMINI_API_KEY}`;
+            
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents: [{ parts: parts }] })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                outputDiv.innerHTML = `<span style="color: red;">HTTP Error ${response.status}: ${data.error ? data.error.message : JSON.stringify(data)}</span>`;
+                return;
+            }
+
+            const answer = data.candidates[0].content.parts[0].text;
+            outputDiv.innerHTML = marked.parse(answer);
+            
+            if (currentUser && window.isProUser) {
+                const historyTitle = `${bike || "General Bike"} (${mileage ? mileage + ' mi' : 'No mileage'})`;
+                await saveToCloudHistory(currentUser.uid, historyTitle, userQuery || "Visual Inspection", answer);
+            }
+
+        } catch (error) {
+            outputDiv.innerHTML = `<span style="color: red;">Network Error: ${error.message}</span>`;
+        }
+    });
+
+    async function saveToCloudHistory(uid, bike, queryText, responseText) {
+        try {
+            await addDoc(collection(db, "users", uid, "garageLogs"), {
+                type: 'ai_diagnosis',
+                bike: bike,
+                query: queryText,
+                response: responseText,
+                date: new Date().toLocaleDateString(),
+                timestamp: new Date().getTime()
+            });
+            loadHistory(uid); 
+        } catch (e) {
+            console.error("Error adding to cloud database: ", e);
+        }
+    }
+
+    async function loadHistory(uid) {
+        const historyContainer = document.getElementById('historyContainer');
+        const historyList = document.getElementById('historyList');
+
+        try {
+            const q = query(collection(db, "users", uid, "garageLogs"), orderBy("timestamp", "desc"), limit(10));
+            const querySnapshot = await getDocs(q);
+
+            cachedLogs = [];
+            querySnapshot.forEach((doc) => {
+                cachedLogs.push(doc.data());
+            });
+
+            if (cachedLogs.length === 0) {
+                historyContainer.style.display = 'none';
+                return;
+            }
+
+            historyContainer.style.display = 'block';
+            historyList.innerHTML = '';
+
+            cachedLogs.forEach((item) => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                const label = item.type === 'manual_service' ? '🔧 [Wrench Log]' : '🤖 [AI Diagnosis]';
+                div.innerHTML = `<strong>${item.bike}</strong> - <em>${label} ${item.query}</em> (${item.date})`;
+                
+                div.onclick = () => {
+                    document.getElementById('output').style.display = 'block';
+                    document.getElementById('output').innerHTML = item.type === 'manual_service' 
+                        ? `<h3>🔧 Wrench Session: ${item.query}</h3><p><strong>Date:</strong> ${item.date} | <strong>Mileage:</strong> ${item.mileage} miles</p><p><strong>Shed Notes:</strong></p><p>${item.response}</p>`
+                        : marked.parse(item.response);
+                };
+                historyList.appendChild(div);
+            });
+        } catch (e) {
+            console.error("Error reading from cloud database: ", e);
+        }
+    }
+
+    document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+        const bikeName = document.getElementById('garageBikeName').value || 'My Motorcycle';
+        const bikeModel = document.getElementById('garageBikeModel').value || document.getElementById('bikeDetails').value || 'Not Specified';
+        const color = document.getElementById('garageColor').value || 'Not Specified';
+        const mileage = document.getElementById('garageMileage').value || document.getElementById('bikeMileage').value || 'Not Specified';
+        const motDate = document.getElementById('garageMotDate').value || 'Not Set';
+        const reportDate = new Date().toLocaleDateString();
+
+        let logsHtml = '';
+        if (cachedLogs.length === 0) {
+            logsHtml = '<p>No service logs recorded yet.</p>';
+        } else {
+            cachedLogs.forEach(log => {
+                const isManual = log.type === 'manual_service';
+                logsHtml += `
+                    <div style="margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">
+                        <p style="margin: 0 0 5px 0;"><strong>Date:</strong> ${log.date} | <strong>${isManual ? 'Service Performed' : 'AI Diagnostic'}:</strong> ${log.query}</p>
+                        ${isManual ? `<p style="margin: 0 0 5px 0;"><strong>Mileage at Service:</strong> ${log.mileage} miles</p>` : ''}
+                        <div style="background: #f9f9f9; padding: 10px; border-radius: 4px; font-size: 13px; color: #444; margin-top: 5px;">
+                            ${isManual ? log.response : marked.parse(log.response)}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>ShedLens Pro - Maintenance Report</title>
+                <style>
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #333; }
+                    h1 { color: #ff6600; margin-bottom: 5px; }
+                    .subtitle { font-size: 14px; color: #666; margin-bottom: 30px; }
+                    .section-title { background: #23272f; color: white; padding: 8px 12px; font-size: 15px; margin-top: 30px; border-radius: 4px; }
+                    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+                    .grid-item { background: #f8f9fa; padding: 10px; border-radius: 4px; border: 1px solid #eee; font-size: 14px; }
+                    .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #eee; padding-top: 15px; }
+                </style>
+            </head>
+            <body>
+                <h1>☁️ ShedLens Pro</h1>
+                <div class="subtitle">Official Maintenance History Report</div>
+                
+                <div class="section-title">Vehicle Profile</div>
+                <div class="grid">
+                    <div class="grid-item"><strong>Bike Name:</strong> ${bikeName}</div>
+                    <div class="grid-item"><strong>Make & Model:</strong> ${bikeModel}</div>
+                    <div class="grid-item"><strong>Color:</strong> ${color}</div>
+                    <div class="grid-item"><strong>Current Mileage:</strong> ${mileage} miles</div>
+                    <div class="grid-item"><strong>MOT Due Date:</strong> ${motDate}</div>
+                    <div class="grid-item"><strong>Report Date:</strong> ${reportDate}</div>
+                </div>
+
+                <div class="section-title">Service Log & Diagnostic History</div>
+                <div style="margin-top: 15px;">
+                    ${logsHtml}
+                </div>
+
+                <div class="footer">
+                    Generated by ShedLens - The Smart Garage Assistant | Professional Maintenance Log
+                </div>
+                <script>
+                    window.onload = function() { window.print(); }
+                <\/script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+    });
+</script>
+</body>
+</html>
