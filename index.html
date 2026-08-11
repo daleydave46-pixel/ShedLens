@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff6600">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>ShedLens - AI Mechanic</title>
     
     <!-- Marked.js library for formatting Gemini markdown -->
@@ -847,6 +851,18 @@
         `);
         printWindow.document.close();
     });
+    </script>
+
+<!-- Service Worker Registration for PWA -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('ServiceWorker registered'))
+        .catch(err => console.log('ServiceWorker failed: ', err));
+    });
+  }
 </script>
 </body>
 </html>
+
