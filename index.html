@@ -654,19 +654,6 @@
     });
 
     document.getElementById('diagnoseBtn').addEventListener('click', async () => {
-        // --- NEW SECURE API KEY LOGIC ---
-        let GEMINI_API_KEY = localStorage.getItem('shedlens_api_key');
-        if (!GEMINI_API_KEY) {
-            GEMINI_API_KEY = prompt("Please paste your Gemini API Key to unlock the AI Mechanic:");
-            if (!GEMINI_API_KEY) {
-                alert("An API key is required to run diagnostics.");
-                return;
-            }
-            // Save it securely to the phone's local memory
-            localStorage.setItem('shedlens_api_key', GEMINI_API_KEY);
-        }
-        // --------------------------------
-        
         const bike = document.getElementById("bikeDetails").value.trim();
         const mileage = document.getElementById("bikeMileage").value.trim();
         const motDate = document.getElementById("garageMotDate")?.value || "";
@@ -702,7 +689,8 @@
         }
 
         try {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GEMINI_API_KEY}`;
+            // 🔒 SECURE FIREBASE BACKEND LINK (No API Keys Exposed!)
+            const url = `https://us-central1-shedlens.cloudfunctions.net/diagnoseBike`;
             
             const response = await fetch(url, {
                 method: "POST",
