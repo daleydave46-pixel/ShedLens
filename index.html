@@ -14,7 +14,7 @@
 
     <style>
         /* 🌙 "Night Garage" Industrial Aesthetic */
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121417; color: #e0e0e0; margin: 0; padding: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121417; color: #e0e0e0; margin: 0; padding: 20px; padding-bottom: 80px; } /* Added padding-bottom for the fixed nav */
         .container { max-width: 650px; margin: 0 auto; background: #1c1f24; padding: 30px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); border: 1px solid #2d323b; }
         
         .header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d323b; padding-bottom: 15px; margin-bottom: 25px; gap: 10px; }
@@ -35,7 +35,7 @@
         .input-group textarea { resize: vertical; min-height: 80px; }
 
         .panel { background: #23272f; border: 1px solid #3d4450; padding: 20px; border-radius: 8px; margin-bottom: 25px; display: none; }
-        .panel h3 { margin-top: 0; color: #ff6600; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+        .panel h3 { margin-top: 0; color: #ff6600; font-size: 18px; display: flex; align-items: center; gap: 8px; margin-bottom: 15px; }
         
         .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         
@@ -79,7 +79,18 @@
 
         hr { border: 0; border-top: 1px dashed #2d323b; margin: 30px 0; }
         
-        .history-item { background: #23272f; border: 1px solid #3d4450; padding: 12px 15px; border-radius: 6px; margin-bottom: 10px; cursor: pointer; font-size: 13px; color: #cccccc; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        /* 🛠️ NEW: Tabbed Interface Styles */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #1c1f24; border-top: 1px solid #2d323b; display: flex; justify-content: space-around; padding: 12px 0; z-index: 1000; box-shadow: 0 -4px 10px rgba(0,0,0,0.3); }
+        .nav-item { color: #99aab5; font-size: 12px; font-weight: bold; display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; flex-grow: 1; text-align: center; transition: 0.2s; }
+        .nav-item:hover { color: #ffffff; }
+        .nav-item.active { color: #ff6600; }
+        .nav-icon { font-size: 22px; }
+
+        .history-item { background: #23272f; border: 1px solid #3d4450; padding: 12px 15px; border-radius: 6px; margin-bottom: 10px; cursor: pointer; font-size: 13px; color: #cccccc; display: flex; flex-direction: column; gap: 10px; }
+        .history-item-header { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .history-item:hover { border-color: #ff6600; background: #2a2e39; }
         .history-item-content { flex-grow: 1; }
         .delete-log-btn { background: none; border: none; font-size: 16px; cursor: pointer; padding: 5px; opacity: 0.6; transition: 0.2s; }
@@ -106,7 +117,7 @@
         </div>
     </div>
 
-    <!-- 🚀 HIGH-IMPACT MARKETING HERO -->
+    <!-- 🚀 HIGH-IMPACT MARKETING HERO (Only shows when logged out) -->
     <div id="heroSection">
         <h2>Your AI-Powered Garage Companion</h2>
         <p>Expert diagnostic assistance and digital logbooks built for every riding discipline.</p>
@@ -118,161 +129,178 @@
         <button class="btn btn-orange" id="heroLoginBtn" style="width: auto; padding: 10px 24px; font-size: 16px;">Sign in with Google to Build Your Garage</button>
     </div>
 
-    <!-- 🚦 DYNAMIC VISUAL STATUS CARD -->
-    <div id="statusCard" class="status-card"></div>
+    <!-- ========================================== -->
+    <!-- 🏠 TAB 1: THE GARAGE (ACTION CENTER)       -->
+    <!-- ========================================== -->
+    <div id="tab-garage" class="tab-content">
+        <!-- 🚦 DYNAMIC VISUAL STATUS CARD -->
+        <div id="statusCard" class="status-card"></div>
 
-    <!-- 🏍️ MULTI-BIKE SELECTOR & PROFILE PANEL -->
-    <div id="garageProfilePanel" class="panel">
-        <h3>🏍️ My Garage & Multi-Bike Profile</h3>
-        <div class="input-group" style="margin-bottom:15px;">
-            <label style="font-size:13px;">Select Active Motorcycle:</label>
-            <select id="bikeSelector">
-                <option value="">-- Add or Select a Bike --</option>
-            </select>
-        </div>
-        
-        <div class="input-group" style="margin-bottom:15px;">
-            <label style="font-size:13px;">Registration Plate (UK):</label>
+        <!-- 🏍️ MULTI-BIKE SELECTOR & PROFILE PANEL -->
+        <div id="garageProfilePanel" class="panel">
+            <h3>🏍️ My Garage & Multi-Bike Profile</h3>
+            <div class="input-group" style="margin-bottom:15px;">
+                <label style="font-size:13px;">Select Active Motorcycle:</label>
+                <select id="bikeSelector">
+                    <option value="">-- Add or Select a Bike --</option>
+                </select>
+            </div>
+            
+            <div class="input-group" style="margin-bottom:15px;">
+                <label style="font-size:13px;">Registration Plate (UK):</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="garageRegPlate" placeholder="e.g., AB12 CDE" style="text-transform: uppercase;">
+                    <button class="btn btn-dark" id="dvlaLookupBtn" style="white-space: nowrap;">DVLA Lookup</button>
+                </div>
+            </div>
+
+            <div class="profile-grid">
+                <div class="input-group" style="margin-bottom:10px;">
+                    <label style="font-size:13px;">Bike Nickname / Name:</label>
+                    <input type="text" id="garageBikeName" placeholder="e.g., The Mule">
+                </div>
+                <div class="input-group" style="margin-bottom:10px;">
+                    <label style="font-size:13px;">Make, Model & Year:</label>
+                    <input type="text" id="garageBikeModel" placeholder="Yamaha Ténéré 700 (2023)">
+                </div>
+                <div class="input-group" style="margin-bottom:10px;">
+                    <label style="font-size:13px;">Color:</label>
+                    <input type="text" id="garageColor" placeholder="e.g., Icon Blue">
+                </div>
+                <div class="input-group" style="margin-bottom:10px;">
+                    <label style="font-size:13px;">Current Mileage:</label>
+                    <input type="number" id="garageMileage" placeholder="6150">
+                </div>
+                <div class="input-group" style="margin-bottom:10px; grid-column: 1 / -1;">
+                    <label style="font-size:13px;">MOT Due Date:</label>
+                    <input type="date" id="garageMotDate">
+                </div>
+            </div>
             <div style="display: flex; gap: 10px;">
-                <input type="text" id="garageRegPlate" placeholder="e.g., AB12 CDE" style="text-transform: uppercase;">
-                <button class="btn btn-dark" id="dvlaLookupBtn" style="white-space: nowrap;">DVLA Lookup</button>
+                <button class="btn btn-small" id="saveProfileBtn">Save / Update Bike</button>
+                <button class="btn btn-small" id="newBikeBtn" style="background: #2d323b;">+ Add New Bike</button>
             </div>
         </div>
 
-        <div class="profile-grid">
+        <!-- 🔧 LOG A SERVICE WRENCH SESSION PANEL -->
+        <div id="serviceLogPanel" class="panel">
+            <h3>🔧 Log a Wrench Session</h3>
             <div class="input-group" style="margin-bottom:10px;">
-                <label style="font-size:13px;">Bike Nickname / Name:</label>
-                <input type="text" id="garageBikeName" placeholder="e.g., The Mule">
+                <label style="font-size:13px;">Maintenance Type:</label>
+                <input type="text" id="serviceTypeInput" placeholder="e.g., Oil & Filter Change, Front Tyre Replacement">
             </div>
-            <div class="input-group" style="margin-bottom:10px;">
-                <label style="font-size:13px;">Make, Model & Year:</label>
-                <input type="text" id="garageBikeModel" placeholder="Yamaha Ténéré 700 (2023)">
-            </div>
-            <div class="input-group" style="margin-bottom:10px;">
-                <label style="font-size:13px;">Color:</label>
-                <input type="text" id="garageColor" placeholder="e.g., Icon Blue">
-            </div>
-            <div class="input-group" style="margin-bottom:10px;">
-                <label style="font-size:13px;">Current Mileage:</label>
-                <input type="number" id="garageMileage" placeholder="6150">
-            </div>
-            <div class="input-group" style="margin-bottom:10px; grid-column: 1 / -1;">
-                <label style="font-size:13px;">MOT Due Date:</label>
-                <input type="date" id="garageMotDate">
-            </div>
-        </div>
-        <div style="display: flex; gap: 10px;">
-            <button class="btn btn-small" id="saveProfileBtn">Save / Update Bike</button>
-            <button class="btn btn-small" id="newBikeBtn" style="background: #2d323b;">+ Add New Bike</button>
-        </div>
-    </div>
-
-    <!-- 🔧 LOG A SERVICE WRENCH SESSION PANEL -->
-    <div id="serviceLogPanel" class="panel">
-        <h3>🔧 Log a Wrench Session</h3>
-        <div class="input-group" style="margin-bottom:10px;">
-            <label style="font-size:13px;">Maintenance Type:</label>
-            <input type="text" id="serviceTypeInput" placeholder="e.g., Oil & Filter Change, Front Tyre Replacement">
-        </div>
-        <div class="profile-grid">
-            <div class="input-group" style="margin-bottom:10px;">
-                <label style="font-size:13px;">Service Date:</label>
-                <input type="date" id="serviceDateInput">
+            <div class="profile-grid">
+                <div class="input-group" style="margin-bottom:10px;">
+                    <label style="font-size:13px;">Service Date:</label>
+                    <input type="date" id="serviceDateInput">
+                </div>
+                <div class="input-group" style="margin-bottom:10px;">
+                    <label style="font-size:13px;">Mileage at Service:</label>
+                    <input type="number" id="serviceMileageInput" placeholder="6020">
+                </div>
             </div>
             <div class="input-group" style="margin-bottom:10px;">
-                <label style="font-size:13px;">Mileage at Service:</label>
-                <input type="number" id="serviceMileageInput" placeholder="6020">
+                <label style="font-size:13px;">Custom Shed Notes (Tools used, oil brand, tips):</label>
+                <textarea id="serviceNotesInput" placeholder="Used 10W-40 fully synthetic. New bead breaker made the tyre swap super easy..."></textarea>
+            </div>
+            <button class="btn btn-small" id="saveServiceBtn">Save Service Entry</button>
+        </div>
+
+        <!-- 📁 SECURE DIGITAL WALLET PANEL (Upload Only) -->
+        <div id="digitalWalletPanel" class="panel">
+            <h3>🔐 Secure Digital Wallet</h3>
+            <p style="font-size: 13px; color: #99aab5; margin-top: 0; margin-bottom: 15px;">Securely upload V5C logbooks, receipts, and insurance documents to your vault.</p>
+            <div class="input-group" style="margin-bottom:10px;">
+                <select id="walletCategory">
+                    <option value="Receipts & Parts">🧾 Receipts & Parts</option>
+                    <option value="V5C Logbook">📜 V5C Logbook</option>
+                    <option value="MOT Certificate">🏍️ MOT Certificate</option>
+                    <option value="Insurance">🛡️ Insurance</option>
+                    <option value="Manuals">🛠️ Manuals & Diagrams</option>
+                </select>
+            </div>
+            
+            <div class="input-group" style="margin-bottom:15px; display: flex; align-items: center; gap: 10px;">
+                <input type="file" id="walletFile" accept="image/*,.pdf" style="flex-grow: 1;" />
+                <span title="Use camera on mobile" style="font-size: 24px;">📷</span>
+            </div>
+            
+            <button class="btn btn-small" id="uploadWalletBtn" style="width: 100%;">Upload to Secure Vault</button>
+            <p id="uploadStatus" style="font-size: 13px; margin-top: 10px; text-align: center; font-weight: bold;"></p>
+        </div>
+
+        <p style="color: #99aab5; margin-bottom: 20px;">Enter details, dictate your issue, or upload a photo for AI diagnostic assistance.</p>
+
+        <!-- General Diagnostic Inputs -->
+        <div class="input-group" id="generalBikeGroup">
+            <label>Motorcycle (Make, Model, Year):</label>
+            <input type="text" id="bikeDetails" placeholder="e.g., 2023 Yamaha Tenere 700">
+        </div>
+
+        <div class="input-group" id="generalMileageGroup">
+            <label>Current Mileage:</label>
+            <input type="number" id="bikeMileage" placeholder="e.g., 6150">
+        </div>
+
+        <!-- Upload Photo (Premium Locked) -->
+        <div class="input-group">
+            <label>Upload Photo (Diagnostic Input): ⭐ Pro</label>
+            <input type="file" id="photoInput" accept="image/*">
+            <div id="imagePreviewContainer">
+                <img id="imagePreview" src="" alt="Diagnostic Preview">
             </div>
         </div>
-        <div class="input-group" style="margin-bottom:10px;">
-            <label style="font-size:13px;">Custom Shed Notes (Tools used, oil brand, tips):</label>
-            <textarea id="serviceNotesInput" placeholder="Used 10W-40 fully synthetic. New bead breaker made the tyre swap super easy..."></textarea>
-        </div>
-        <button class="btn btn-small" id="saveServiceBtn">Save Service Entry</button>
-    </div>
 
-    <!-- 📁 SECURE DIGITAL WALLET PANEL -->
-    <div id="digitalWalletPanel" class="panel">
-        <h3>🔐 Secure Digital Wallet</h3>
-        <p style="font-size: 13px; color: #99aab5; margin-top: 0; margin-bottom: 15px;">Securely store V5C logbooks, receipts, and insurance documents.</p>
-        <div class="input-group" style="margin-bottom:10px;">
-            <select id="walletCategory">
-                <option value="Receipts & Parts">🧾 Receipts & Parts</option>
-                <option value="V5C Logbook">📜 V5C Logbook</option>
-                <option value="MOT Certificate">🏍️ MOT Certificate</option>
-                <option value="Insurance">🛡️ Insurance</option>
-                <option value="Manuals">🛠️ Manuals & Diagrams</option>
-            </select>
-        </div>
-        
-        <div class="input-group" style="margin-bottom:15px; display: flex; align-items: center; gap: 10px;">
-            <input type="file" id="walletFile" accept="image/*,.pdf" style="flex-grow: 1;" />
-            <span title="Use camera on mobile" style="font-size: 24px;">📷</span>
-        </div>
-        
-        <button class="btn btn-small" id="uploadWalletBtn" style="width: 100%;">Upload to Secure Vault</button>
-        <p id="uploadStatus" style="font-size: 13px; margin-top: 10px; text-align: center; font-weight: bold;"></p>
-        
-        <div id="vaultContainer" style="margin-top: 20px; border-top: 1px dashed #3d4450; padding-top: 15px; display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h4 style="color: #b8c1ec; margin: 0; font-size: 14px;">Stored in Vault:</h4>
-                <button id="toggleVaultBtn" class="btn btn-dark" style="padding: 4px 8px; font-size: 12px;">🔽 Hide</button>
-            </div>
-            <div id="vaultToggleWrapper" style="display: block;">
-                <div id="vaultList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        <!-- Text Area & Microphone -->
+        <div class="input-group">
+            <label>What are we looking at / repairing?</label>
+            <div class="textarea-wrapper">
+                <textarea id="issueText" placeholder="My Ténéré 700 has a weird ticking noise..."></textarea>
+                <button class="mic-btn" id="micBtn" title="Dictate Question">🎤 ⭐ Pro</button>
             </div>
         </div>
+
+        <!-- Submit Button -->
+        <button class="btn btn-orange" id="diagnoseBtn">Diagnose with ShedLens</button>
+
+        <!-- AI Output -->
+        <div id="output"></div>
     </div>
 
-    <p style="color: #99aab5; margin-bottom: 20px;">Enter details, dictate your issue, or upload a photo for AI diagnostic assistance.</p>
+    <!-- ========================================== -->
+    <!-- 📘 TAB 2: THE LOGBOOK (REVIEW CENTER)      -->
+    <!-- ========================================== -->
+    <div id="tab-logbook" class="tab-content">
+        <h2 style="color: #ffffff; margin-top: 0; margin-bottom: 5px;">📘 Logbook & Vault</h2>
+        <p style="color: #99aab5; font-size: 14px; margin-bottom: 25px;">Your official maintenance records, stored documents, and diagnostic history.</p>
 
-    <!-- General Diagnostic Inputs -->
-    <div class="input-group" id="generalBikeGroup">
-        <label>Motorcycle (Make, Model, Year):</label>
-        <input type="text" id="bikeDetails" placeholder="e.g., 2023 Yamaha Tenere 700">
-    </div>
+        <p id="emptyLogbookText" style="color: #ff6600; text-align: center; display: none; margin-top: 50px;">Your logbook is empty. Head to the Garage tab to log services and upload documents!</p>
 
-    <div class="input-group" id="generalMileageGroup">
-        <label>Current Mileage:</label>
-        <input type="number" id="bikeMileage" placeholder="e.g., 6150">
-    </div>
-
-    <!-- Upload Photo (Premium Locked) -->
-    <div class="input-group">
-        <label>Upload Photo (Diagnostic Input): ⭐ Pro</label>
-        <input type="file" id="photoInput" accept="image/*">
-        <div id="imagePreviewContainer">
-            <img id="imagePreview" src="" alt="Diagnostic Preview">
+        <!-- 🔐 The Vault List -->
+        <div id="vaultContainer" style="display: none; margin-bottom: 40px;">
+            <h3 style="color: #ff6600; font-size: 18px; border-bottom: 1px dashed #3d4450; padding-bottom: 10px;">🔐 Stored Documents</h3>
+            <div id="vaultList" style="display: flex; flex-direction: column; gap: 8px;"></div>
         </div>
-    </div>
 
-    <!-- Text Area & Microphone -->
-    <div class="input-group">
-        <label>What are we looking at / repairing?</label>
-        <div class="textarea-wrapper">
-            <textarea id="issueText" placeholder="My Ténéré 700 has a weird ticking noise..."></textarea>
-            <button class="mic-btn" id="micBtn" title="Dictate Question">🎤 ⭐ Pro</button>
-        </div>
-    </div>
-
-    <!-- Submit Button -->
-    <button class="btn btn-orange" id="diagnoseBtn">Diagnose with ShedLens</button>
-
-    <!-- AI Output -->
-    <div id="output"></div>
-
-    <hr>
-
-    <div class="history-section" id="historyContainer" style="display: none;">
-        <h3>☁️ Private Garage History & Service Log</h3>
-        <p id="historyText" style="color: #99aab5; display: none;">Please sign in to view your history.</p>
-        
-        <button id="toggleHistoryBtn" class="btn btn-dark" style="width: 100%; margin-bottom: 15px;">🔽 Hide History</button>
-        
-        <div id="historyToggleWrapper" style="display: block;">
-            <div id="historyList"></div>
+        <!-- 🔧 The History List -->
+        <div id="historyContainer" style="display: none;">
+            <h3 style="color: #ff6600; font-size: 18px; border-bottom: 1px dashed #3d4450; padding-bottom: 10px;">🔧 Service & Chat Log</h3>
+            <div id="historyList" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 25px;"></div>
             <button class="btn btn-pdf" id="downloadPdfBtn">📄 Download Official Maintenance Report (PDF)</button>
         </div>
+    </div>
+
+</div>
+
+<!-- 📱 BOTTOM NAVIGATION APP MENU -->
+<div class="bottom-nav" id="bottomNav" style="display: none;">
+    <div class="nav-item active" id="navGarage">
+        <span class="nav-icon">🏠</span>
+        <span>Garage</span>
+    </div>
+    <div class="nav-item" id="navLogbook">
+        <span class="nav-icon">📘</span>
+        <span>Logbook</span>
     </div>
 </div>
 
@@ -327,29 +355,19 @@
     let userBikes = [];
     let activeBikeId = null;
 
-    document.getElementById('toggleHistoryBtn').addEventListener('click', () => {
-        const wrapper = document.getElementById('historyToggleWrapper');
-        const btn = document.getElementById('toggleHistoryBtn');
-        if (wrapper.style.display === 'none') {
-            wrapper.style.display = 'block';
-            btn.innerHTML = '🔽 Hide History';
-        } else {
-            wrapper.style.display = 'none';
-            btn.innerHTML = '▶️ Show History';
-        }
-    });
+    // 🛠️ NEW: Tab Switching Logic
+    document.getElementById('navGarage').addEventListener('click', () => switchTab('garage'));
+    document.getElementById('navLogbook').addEventListener('click', () => switchTab('logbook'));
 
-    document.getElementById('toggleVaultBtn').addEventListener('click', () => {
-        const wrapper = document.getElementById('vaultToggleWrapper');
-        const btn = document.getElementById('toggleVaultBtn');
-        if (wrapper.style.display === 'none') {
-            wrapper.style.display = 'block';
-            btn.innerHTML = '🔽 Hide';
-        } else {
-            wrapper.style.display = 'none';
-            btn.innerHTML = '▶️ Show';
-        }
-    });
+    function switchTab(tab) {
+        document.getElementById('tab-garage').classList.toggle('active', tab === 'garage');
+        document.getElementById('tab-logbook').classList.toggle('active', tab === 'logbook');
+        
+        document.getElementById('navGarage').classList.toggle('active', tab === 'garage');
+        document.getElementById('navLogbook').classList.toggle('active', tab === 'logbook');
+        
+        window.scrollTo(0, 0); // Scroll to top when switching tabs
+    }
 
     document.getElementById('dvlaLookupBtn').addEventListener('click', () => {
         const reg = document.getElementById('garageRegPlate').value.trim();
@@ -384,12 +402,12 @@
             
             if (window.isProUser) {
                 document.getElementById('heroSection').style.display = 'none';
-                document.getElementById('garageProfilePanel').style.display = 'block';
-                document.getElementById('serviceLogPanel').style.display = 'block';
-                document.getElementById('digitalWalletPanel').style.display = 'block';
+                document.getElementById('bottomNav').style.display = 'flex';
+                switchTab('garage');
                 await loadUserBikes(user.uid);
             } else {
                 document.getElementById('heroSection').style.display = 'block';
+                document.getElementById('bottomNav').style.display = 'none';
             }
         } else {
             await setDoc(userRef, {
@@ -400,6 +418,7 @@
             });
             window.isProUser = false;
             document.getElementById('heroSection').style.display = 'block';
+            document.getElementById('bottomNav').style.display = 'none';
         }
 
         const stripeBtn = document.querySelector('.stripe-btn');
@@ -557,7 +576,7 @@
             document.getElementById('serviceTypeInput').value = '';
             document.getElementById('serviceMileageInput').value = '';
             document.getElementById('serviceNotesInput').value = '';
-            alert("Service entry successfully logged to your Shed Log!");
+            alert("Service entry successfully logged! Check your Logbook tab to view it.");
             loadHistory(currentUser.uid);
         } catch (e) {
             console.error("Error saving service entry: ", e);
@@ -604,7 +623,7 @@
             });
             
             statusText.style.color = "#2ecc71";
-            statusText.innerText = "✅ Document safely secured in your wallet!";
+            statusText.innerText = "✅ Document safely secured! You can view it in the Logbook tab.";
             fileInput.value = ""; 
             loadHistory(currentUser.uid);
         } catch (error) {
@@ -629,8 +648,6 @@
             const firstName = user.displayName ? user.displayName.split(' ')[0] : "Rider";
             userNameDisplay.textContent = "🛖 " + firstName + "'s Garage";
             
-            document.getElementById('heroSection').style.display = 'none';
-            
             checkAndCreateUserProfile(user);
             loadHistory(user.uid);
         } else {
@@ -639,12 +656,11 @@
             logoutBtn.style.display = 'none';
             userNameDisplay.style.display = 'none';
             window.isProUser = false;
+            
             document.getElementById('heroSection').style.display = 'block';
-            document.getElementById('garageProfilePanel').style.display = 'none';
-            document.getElementById('serviceLogPanel').style.display = 'none';
-            document.getElementById('digitalWalletPanel').style.display = 'none';
-            document.getElementById('historyContainer').style.display = 'none';
-            document.getElementById('statusCard').style.display = 'none';
+            document.getElementById('bottomNav').style.display = 'none';
+            document.getElementById('tab-garage').style.display = 'none';
+            document.getElementById('tab-logbook').style.display = 'none';
         }
     });
 
@@ -808,6 +824,7 @@
         const historyList = document.getElementById('historyList');
         const vaultContainer = document.getElementById('vaultContainer');
         const vaultList = document.getElementById('vaultList');
+        const emptyText = document.getElementById('emptyLogbookText');
 
         try {
             const q = query(collection(db, "users", uid, "garageLogs"), orderBy("timestamp", "desc"), limit(50));
@@ -821,13 +838,16 @@
             if (cachedLogs.length === 0) {
                 historyContainer.style.display = 'none';
                 vaultContainer.style.display = 'none';
+                emptyText.style.display = 'block';
                 return;
             }
 
+            emptyText.style.display = 'none';
             historyContainer.style.display = 'block';
             historyList.innerHTML = '';
             vaultList.innerHTML = '';
             let vaultCount = 0;
+            let historyCount = 0;
 
             cachedLogs.forEach((item) => {
                 if (item.type === 'Wallet Document') {
@@ -863,53 +883,67 @@
                     vWrapper.appendChild(vItem);
                     vWrapper.appendChild(vDeleteBtn);
                     vaultList.appendChild(vWrapper);
-                }
+                } else {
+                    // It's a Chat or Wrench Log
+                    historyCount++;
+                    const div = document.createElement('div');
+                    div.className = 'history-item';
+                    
+                    let label = '🤖 [AI Diagnosis]';
+                    if (item.type === 'manual_service') label = '🔧 [Wrench Log]';
 
-                const div = document.createElement('div');
-                div.className = 'history-item';
-                
-                let label = '🤖 [AI Diagnosis]';
-                if (item.type === 'manual_service') label = '🔧 [Wrench Log]';
-                if (item.type === 'Wallet Document') label = '📁 [Secure Vault]';
-
-                const contentDiv = document.createElement('div');
-                contentDiv.className = 'history-item-content';
-                contentDiv.innerHTML = `<strong>${item.bike}</strong> - <em>${label} ${item.query}</em> (${item.date})`;
-                
-                const deleteBtn = document.createElement('button');
-                deleteBtn.innerHTML = '❌';
-                deleteBtn.className = 'delete-log-btn';
-                deleteBtn.title = 'Delete Log';
-                deleteBtn.onclick = async (e) => {
-                    e.stopPropagation(); 
-                    if (confirm("Are you sure you want to delete this log?")) {
-                        try {
-                            await deleteDoc(doc(db, "users", uid, "garageLogs", item.id));
-                            loadHistory(uid); 
-                        } catch (err) {
-                            console.error("Error deleting log:", err);
-                            alert("Failed to delete log.");
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = 'history-item-header';
+                    
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'history-item-content';
+                    contentDiv.innerHTML = `<strong>${item.bike}</strong> - <em>${label} ${item.query}</em> (${item.date})`;
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.innerHTML = '❌';
+                    deleteBtn.className = 'delete-log-btn';
+                    deleteBtn.title = 'Delete Log';
+                    deleteBtn.onclick = async (e) => {
+                        e.stopPropagation(); 
+                        if (confirm("Are you sure you want to delete this log?")) {
+                            try {
+                                await deleteDoc(doc(db, "users", uid, "garageLogs", item.id));
+                                loadHistory(uid); 
+                            } catch (err) {
+                                console.error("Error deleting log:", err);
+                                alert("Failed to delete log.");
+                            }
                         }
-                    }
-                };
+                    };
 
-                div.appendChild(contentDiv);
-                div.appendChild(deleteBtn);
-                
-                div.onclick = () => {
-                    document.getElementById('output').style.display = 'block';
-                    document.getElementById('output').innerHTML = item.type === 'manual_service' 
-                        ? `<h3>🔧 Wrench Session: ${item.query}</h3><p><strong>Date:</strong> ${item.date} | <strong>Mileage:</strong> ${item.mileage} miles</p><p><strong>Shed Notes:</strong></p><p>${item.response}</p>`
+                    headerDiv.appendChild(contentDiv);
+                    headerDiv.appendChild(deleteBtn);
+                    div.appendChild(headerDiv);
+
+                    // 🛠️ NEW: In-line Expansion (Accordion) for reading chats directly in the Logbook
+                    const detailDiv = document.createElement('div');
+                    detailDiv.style.display = 'none';
+                    detailDiv.style.marginTop = '10px';
+                    detailDiv.style.paddingTop = '10px';
+                    detailDiv.style.borderTop = '1px dashed #3d4450';
+                    detailDiv.style.color = '#cccccc';
+                    detailDiv.innerHTML = item.type === 'manual_service' 
+                        ? `<p><strong>Mileage:</strong> ${item.mileage} miles</p><p><strong>Shed Notes:</strong><br>${item.response}</p>`
                         : marked.parse(item.response);
-                };
-                historyList.appendChild(div);
+                    
+                    div.appendChild(detailDiv);
+                    
+                    div.onclick = (e) => {
+                        if (e.target.classList.contains('delete-log-btn')) return; // Ignore if clicking delete
+                        detailDiv.style.display = detailDiv.style.display === 'none' ? 'block' : 'none';
+                    };
+                    
+                    historyList.appendChild(div);
+                }
             });
 
-            if (vaultCount > 0) {
-                vaultContainer.style.display = 'block';
-            } else {
-                vaultContainer.style.display = 'none';
-            }
+            vaultContainer.style.display = vaultCount > 0 ? 'block' : 'none';
+            historyContainer.style.display = historyCount > 0 ? 'block' : 'none';
 
         } catch (e) {
             console.error("Error reading from cloud database: ", e);
