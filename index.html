@@ -199,6 +199,8 @@
             <select id="walletCategory">
                 <option value="Receipts & Parts">🧾 Receipts & Parts</option>
                 <option value="V5C Logbook">📜 V5C Logbook</option>
+                <!-- 🛠️ NEW: MOT Option Added -->
+                <option value="MOT Certificate">🚗 MOT Certificate</option>
                 <option value="Insurance">🛡️ Insurance</option>
                 <option value="Manuals">🛠️ Manuals & Diagrams</option>
             </select>
@@ -208,6 +210,12 @@
         </div>
         <button class="btn btn-small" id="uploadWalletBtn" style="width: 100%;">Upload to Secure Vault</button>
         <p id="uploadStatus" style="font-size: 13px; margin-top: 10px; text-align: center; font-weight: bold;"></p>
+        
+        <!-- 🛠️ NEW: Vault Gallery List -->
+        <div id="vaultContainer" style="margin-top: 20px; border-top: 1px dashed #3d4450; padding-top: 15px; display: none;">
+            <h4 style="color: #b8c1ec; margin-top: 0; font-size: 14px;">Stored in Vault:</h4>
+            <div id="vaultList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
     </div>
 
     <p style="color: #99aab5; margin-bottom: 20px;">Enter details, dictate your issue, or upload a photo for AI diagnostic assistance.</p>
@@ -780,9 +788,13 @@
     async function loadHistory(uid) {
         const historyContainer = document.getElementById('historyContainer');
         const historyList = document.getElementById('historyList');
+        // 🛠️ NEW: Grabbing the Vault elements
+        const vaultContainer = document.getElementById('vaultContainer');
+        const vaultList = document.getElementById('vaultList');
 
         try {
-            const q = query(collection(db, "users", uid, "garageLogs"), orderBy("timestamp", "desc"), limit(10));
+            // 🛠️ UPDATED: Increased limit to 50 so documents don't disappear from the vault quickly
+            const q = query(collection(db, "users", uid, "garageLogs"), orderBy("timestamp", "desc"), limit(50));
             const querySnapshot = await getDocs(q);
 
             cachedLogs = [];
@@ -792,13 +804,30 @@
 
             if (cachedLogs.length === 0) {
                 historyContainer.style.display = 'none';
+                vaultContainer.style.display = 'none';
                 return;
             }
 
             historyContainer.style.display = 'block';
             historyList.innerHTML = '';
+            vaultList.innerHTML = '';
+            let vaultCount = 0;
 
             cachedLogs.forEach((item) => {
+                // 🛠️ NEW: Build the Vault List
+                if (item.type === 'Wallet Document') {
+                    vaultCount++;
+                    const vItem = document.createElement('a');
+                    vItem.href = item.fileURL;
+                    vItem.target = "_blank";
+                    vItem.style.cssText = "display: block; background: #1c1f24; padding: 10px; border-radius: 6px; color: #ff6600; text-decoration: none; border: 1px solid #3d4450; font-size: 13px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;";
+                    vItem.innerHTML = `📄 <strong>${item.category}</strong>: ${item.fileName || 'Document'} <span style="color:#888; float:right;">${item.date}</span>`;
+                    vItem.onmouseover = () => vItem.style.borderColor = '#ff6600';
+                    vItem.onmouseout = () => vItem.style.borderColor = '#3d4450';
+                    vaultList.appendChild(vItem);
+                }
+
+                // Existing History List logic
                 const div = document.createElement('div');
                 div.className = 'history-item';
                 
@@ -838,6 +867,14 @@
                 };
                 historyList.appendChild(div);
             });
+
+            // 🛠️ NEW: Toggle Vault visibility
+            if (vaultCount > 0) {
+                vaultContainer.style.display = 'block';
+            } else {
+                vaultContainer.style.display = 'none';
+            }
+
         } catch (e) {
             console.error("Error reading from cloud database: ", e);
         }
