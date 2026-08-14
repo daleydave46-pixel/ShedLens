@@ -9,18 +9,19 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>ShedLens - AI Mechanic</title>
     
-    <!-- Marked.js library for formatting Gemini markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
-        /* 🌙 "Night Garage" Industrial Aesthetic */
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121417; color: #e0e0e0; margin: 0; padding: 20px; padding-bottom: 80px; } /* Added padding-bottom for the fixed nav */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121417; color: #e0e0e0; margin: 0; padding: 20px; padding-bottom: 80px; }
         .container { max-width: 650px; margin: 0 auto; background: #1c1f24; padding: 30px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); border: 1px solid #2d323b; }
         
         .header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d323b; padding-bottom: 15px; margin-bottom: 25px; gap: 10px; }
         .header h1 { margin: 0; font-size: 26px; display: flex; align-items: center; gap: 10px; color: #ffffff; letter-spacing: 0.5px; }
         .auth-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-        .user-name { color: #ff6600; font-weight: bold; }
+        .user-name { color: #ff6600; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        .tier-badge { font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: bold; letter-spacing: 0.5px; }
+        .badge-free { background: #3d4450; color: #ffffff; }
+        .badge-pro { background: #ff6600; color: #ffffff; }
         
         #heroSection { text-align: center; padding: 20px 10px 30px 10px; border-bottom: 1px solid #2d323b; margin-bottom: 25px; }
         #heroSection h2 { color: #ffffff; font-size: 24px; margin-bottom: 10px; }
@@ -38,15 +39,19 @@
         .panel h3 { margin-top: 0; color: #ff6600; font-size: 18px; display: flex; align-items: center; gap: 8px; margin-bottom: 15px; }
         
         .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        
-        @media (max-width: 480px) {
-            .profile-grid { grid-template-columns: 1fr; gap: 10px; }
-        }
+        @media (max-width: 480px) { .profile-grid { grid-template-columns: 1fr; gap: 10px; } }
         
         .status-card { background: #1c1f24; border-left: 5px solid #ff6600; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .status-card.healthy { border-left-color: #2ecc71; color: #2ecc71; }
         .status-card.warning { border-left-color: #f1c40f; color: #f1c40f; }
         .status-card.urgent { border-left-color: #e74c3c; color: #e74c3c; background: #2c1a1a; }
+
+        /* Checklist Styles */
+        .checklist-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 14px; color: #cccccc; }
+        .checklist-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: #ff6600; cursor: pointer; }
+        .checklist-item a { color: #ff6600; text-decoration: none; font-size: 12px; margin-left: auto; background: #1c1f24; padding: 2px 6px; border-radius: 4px; border: 1px solid #3d4450; }
+        .checklist-item a:hover { border-color: #ff6600; }
+        .checklist-item.checked span { text-decoration: line-through; color: #888; }
 
         #imagePreviewContainer { margin-top: 10px; display: none; text-align: center;}
         #imagePreview { max-width: 100%; max-height: 200px; border-radius: 6px; border: 1px solid #3d4450; padding: 5px; background: #121417;}
@@ -56,6 +61,7 @@
         .btn-dark:hover { background: #3d4450; }
         .btn-orange { background: #ff6600; color: white; width: 100%; padding: 14px; font-size: 18px; margin-top: 10px; box-shadow: 0 4px 12px rgba(255,102,0,0.3); }
         .btn-orange:hover { background: #e05b00; }
+        .btn-orange:disabled { background: #3d4450; color: #888; cursor: not-allowed; box-shadow: none; }
         .btn-small { background: #ff6600; color: white; padding: 8px 12px; font-size: 13px; margin-top: 10px; }
         .btn-pdf { background: #2d323b; color: white; width: 100%; padding: 12px; font-size: 15px; margin-top: 15px; display: flex; justify-content: center; align-items: center; gap: 8px; border: 1px solid #3d4450; }
         .btn-pdf:hover { background: #3d4450; }
@@ -64,22 +70,15 @@
         .mic-btn { position: absolute; right: 10px; bottom: 10px; background: none; border: none; font-size: 20px; cursor: pointer; }
         .listening { background: #ff4444 !important; border-radius: 50%; color: white; animation: pulse 1s infinite; }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
         #output { margin-top: 25px; padding: 20px; background-color: #121417; border-left: 5px solid #ff6600; border-radius: 4px; font-size: 14px; line-height: 1.6; display: none; border: 1px solid #2d323b; }
         #output h1, #output h2, #output h3 { margin-top: 0; color: #ffffff; }
         #output ul, #output ol { padding-left: 20px; margin-bottom: 15px; }
-        #output p { margin-bottom: 15px; color: #cccccc; }
         #output a { color: #ff6600; text-decoration: none; font-weight: bold; }
-        #output a:hover { text-decoration: underline; }
 
         hr { border: 0; border-top: 1px dashed #2d323b; margin: 30px 0; }
         
-        /* 🛠️ NEW: Tabbed Interface Styles */
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
@@ -91,33 +90,35 @@
 
         .history-item { background: #23272f; border: 1px solid #3d4450; padding: 12px 15px; border-radius: 6px; margin-bottom: 10px; cursor: pointer; font-size: 13px; color: #cccccc; display: flex; flex-direction: column; gap: 10px; }
         .history-item-header { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-        .history-item:hover { border-color: #ff6600; background: #2a2e39; }
         .history-item-content { flex-grow: 1; }
-        .delete-log-btn { background: none; border: none; font-size: 16px; cursor: pointer; padding: 5px; opacity: 0.6; transition: 0.2s; }
-        .delete-log-btn:hover { opacity: 1; transform: scale(1.1); }
+        .delete-log-btn { background: none; border: none; font-size: 16px; cursor: pointer; padding: 5px; opacity: 0.6; }
 
-        #upgradeModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: #1c1f24; border: 1px solid #3d4450; padding: 30px; border-radius: 10px; max-width: 400px; text-align: center; font-family: sans-serif; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        .modal-content h2 { color: #ff6600; }
-        .modal-content p { color: #b8c1ec; }
-        .stripe-btn { display: inline-block; background: #ff6600; color: white; padding: 14px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 15px; width: 80%; transition: 0.2s; }
-        .stripe-btn:hover { background: #e05b00; }
+        /* Welcome / Upgrade Modal */
+        #upgradeModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+        .modal-content { background: #1c1f24; border: 1px solid #3d4450; padding: 30px; border-radius: 10px; max-width: 500px; width: 100%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .tier-box { background: #23272f; border: 1px solid #3d4450; border-radius: 8px; padding: 15px; margin-bottom: 15px; text-align: left; }
+        .tier-box h3 { margin: 0 0 10px 0; color: #ffffff; display: flex; justify-content: space-between; align-items: center; }
+        .tier-box ul { margin: 0; padding-left: 20px; font-size: 13px; color: #b8c1ec; }
+        .tier-box ul li { margin-bottom: 5px; }
+        .stripe-btn { display: block; background: #ff6600; color: white; padding: 14px; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 10px; text-align: center; }
+        .free-btn { display: block; background: #2d323b; color: white; padding: 12px; text-decoration: none; border-radius: 6px; font-weight: bold; border: 1px solid #3d4450; text-align: center; margin-top: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- Header -->
     <div class="header">
         <h1>🔍 ShedLens</h1>
         <div class="auth-controls" id="authSection">
             <button class="btn btn-dark" id="loginBtn">Sign in with Google</button>
-            <span class="user-name" id="userNameDisplay" style="display:none;"></span>
+            <span class="user-name" id="userNameDisplay" style="display:none;">
+                <span id="nameText"></span>
+                <span id="tierBadge" class="tier-badge"></span>
+            </span>
             <button class="btn btn-dark" id="logoutBtn" style="display:none;">Logout</button>
         </div>
     </div>
 
-    <!-- 🚀 HIGH-IMPACT MARKETING HERO (Only shows when logged out) -->
     <div id="heroSection">
         <h2>Your AI-Powered Garage Companion</h2>
         <p>Expert diagnostic assistance and digital logbooks built for every riding discipline.</p>
@@ -130,20 +131,16 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- 🏠 TAB 1: THE GARAGE (ACTION CENTER)       -->
+    <!-- 🏠 TAB 1: THE GARAGE                       -->
     <!-- ========================================== -->
     <div id="tab-garage" class="tab-content">
-        <!-- 🚦 DYNAMIC VISUAL STATUS CARD -->
         <div id="statusCard" class="status-card"></div>
 
-        <!-- 🏍️ MULTI-BIKE SELECTOR & PROFILE PANEL -->
         <div id="garageProfilePanel" class="panel">
             <h3>🏍️ My Garage & Multi-Bike Profile</h3>
             <div class="input-group" style="margin-bottom:15px;">
                 <label style="font-size:13px;">Select Active Motorcycle:</label>
-                <select id="bikeSelector">
-                    <option value="">-- Add or Select a Bike --</option>
-                </select>
+                <select id="bikeSelector"><option value="">-- Add or Select a Bike --</option></select>
             </div>
             
             <div class="input-group" style="margin-bottom:15px;">
@@ -182,7 +179,31 @@
             </div>
         </div>
 
-        <!-- 🔧 LOG A SERVICE WRENCH SESSION PANEL -->
+        <!-- 📝 NEW: Pre-Ride Checklist (Pro Feature) -->
+        <div id="checklistPanel" class="panel">
+            <h3>📝 Pre-Ride & Trail Checklist</h3>
+            <p style="font-size: 13px; color: #99aab5; margin-top: 0; margin-bottom: 15px;">Tick items off before hitting the trail.</p>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="chk1" onchange="this.parentElement.classList.toggle('checked')">
+                <span>Check Tire Pressure & Spokes</span>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="chk2" onchange="this.parentElement.classList.toggle('checked')">
+                <span>Lube Chain & Check Tension</span>
+                <a href="#" target="_blank" title="Get Chain Lube from Webbs">Shop Webbs 🛒</a>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="chk3" onchange="this.parentElement.classList.toggle('checked')">
+                <span>Pack Trail Spares (Tubes, Pump, Zip-Ties)</span>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="chk4" onchange="this.parentElement.classList.toggle('checked')">
+                <span>Pack Heavy-Duty Tyre Levers</span>
+                <a href="#" target="_blank" title="Get Tyre Levers from Demon Tweeks">Demon Tweeks 🛒</a>
+            </div>
+        </div>
+
         <div id="serviceLogPanel" class="panel">
             <h3>🔧 Log a Wrench Session</h3>
             <div class="input-group" style="margin-bottom:10px;">
@@ -206,32 +227,31 @@
             <button class="btn btn-small" id="saveServiceBtn">Save Service Entry</button>
         </div>
 
-        <!-- 📁 SECURE DIGITAL WALLET PANEL (Upload Only) -->
         <div id="digitalWalletPanel" class="panel">
-            <h3>🔐 Secure Digital Wallet</h3>
-            <p style="font-size: 13px; color: #99aab5; margin-top: 0; margin-bottom: 15px;">Securely upload V5C logbooks, receipts, and insurance documents to your vault.</p>
+            <h3>🔐 Secure Digital Wallet & GPX Vault</h3>
+            <p style="font-size: 13px; color: #99aab5; margin-top: 0; margin-bottom: 15px;">Securely upload V5C logbooks, MOTs, and GPX Trail Routes.</p>
             <div class="input-group" style="margin-bottom:10px;">
                 <select id="walletCategory">
                     <option value="Receipts & Parts">🧾 Receipts & Parts</option>
                     <option value="V5C Logbook">📜 V5C Logbook</option>
                     <option value="MOT Certificate">🏍️ MOT Certificate</option>
                     <option value="Insurance">🛡️ Insurance</option>
+                    <option value="GPX Route">🗺️ GPX Route</option>
                     <option value="Manuals">🛠️ Manuals & Diagrams</option>
                 </select>
             </div>
             
             <div class="input-group" style="margin-bottom:15px; display: flex; align-items: center; gap: 10px;">
-                <input type="file" id="walletFile" accept="image/*,.pdf" style="flex-grow: 1;" />
+                <input type="file" id="walletFile" accept="image/*,.pdf,.gpx" style="flex-grow: 1;" />
                 <span title="Use camera on mobile" style="font-size: 24px;">📷</span>
             </div>
             
-            <button class="btn btn-small" id="uploadWalletBtn" style="width: 100%;">Upload to Secure Vault</button>
+            <button class="btn btn-small" id="uploadWalletBtn" style="width: 100%;">Upload to Vault</button>
             <p id="uploadStatus" style="font-size: 13px; margin-top: 10px; text-align: center; font-weight: bold;"></p>
         </div>
 
         <p style="color: #99aab5; margin-bottom: 20px;">Enter details, dictate your issue, or upload a photo for AI diagnostic assistance.</p>
 
-        <!-- General Diagnostic Inputs -->
         <div class="input-group" id="generalBikeGroup">
             <label>Motorcycle (Make, Model, Year):</label>
             <input type="text" id="bikeDetails" placeholder="e.g., 2023 Yamaha Tenere 700">
@@ -242,7 +262,6 @@
             <input type="number" id="bikeMileage" placeholder="e.g., 6150">
         </div>
 
-        <!-- Upload Photo (Premium Locked) -->
         <div class="input-group">
             <label>Upload Photo (Diagnostic Input): ⭐ Pro</label>
             <input type="file" id="photoInput" accept="image/*">
@@ -251,7 +270,6 @@
             </div>
         </div>
 
-        <!-- Text Area & Microphone -->
         <div class="input-group">
             <label>What are we looking at / repairing?</label>
             <div class="textarea-wrapper">
@@ -260,15 +278,15 @@
             </div>
         </div>
 
-        <!-- Submit Button -->
+        <!-- 🛠️ NEW: Credit Counter Display -->
+        <p id="creditDisplay" style="text-align: center; font-size: 13px; color: #b8c1ec; margin-bottom: 5px; display: none;">Free AI Credits Remaining: <span id="creditCount" style="color: #ff6600; font-weight: bold;">5</span></p>
         <button class="btn btn-orange" id="diagnoseBtn">Diagnose with ShedLens</button>
 
-        <!-- AI Output -->
         <div id="output"></div>
     </div>
 
     <!-- ========================================== -->
-    <!-- 📘 TAB 2: THE LOGBOOK (REVIEW CENTER)      -->
+    <!-- 📘 TAB 2: THE LOGBOOK                      -->
     <!-- ========================================== -->
     <div id="tab-logbook" class="tab-content">
         <h2 style="color: #ffffff; margin-top: 0; margin-bottom: 5px;">📘 Logbook & Vault</h2>
@@ -276,48 +294,65 @@
 
         <p id="emptyLogbookText" style="color: #ff6600; text-align: center; display: none; margin-top: 50px;">Your logbook is empty. Head to the Garage tab to log services and upload documents!</p>
 
-        <!-- 🔐 The Vault List -->
         <div id="vaultContainer" style="display: none; margin-bottom: 40px;">
-            <h3 style="color: #ff6600; font-size: 18px; border-bottom: 1px dashed #3d4450; padding-bottom: 10px;">🔐 Stored Documents</h3>
-            <div id="vaultList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #3d4450; padding-bottom: 10px; margin-bottom: 10px;">
+                <h3 style="color: #ff6600; font-size: 18px; margin: 0;">🔐 Stored Documents</h3>
+                <button id="toggleVaultBtn" class="btn btn-dark" style="padding: 4px 8px; font-size: 12px;">🔽 Hide</button>
+            </div>
+            <div id="vaultToggleWrapper" style="display: block;">
+                <div id="vaultList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            </div>
         </div>
 
-        <!-- 🔧 The History List -->
         <div id="historyContainer" style="display: none;">
-            <h3 style="color: #ff6600; font-size: 18px; border-bottom: 1px dashed #3d4450; padding-bottom: 10px;">🔧 Service & Chat Log</h3>
-            <div id="historyList" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 25px;"></div>
-            <button class="btn btn-pdf" id="downloadPdfBtn">📄 Download Official Maintenance Report (PDF)</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #3d4450; padding-bottom: 10px; margin-bottom: 10px;">
+                <h3 style="color: #ff6600; font-size: 18px; margin: 0;">🔧 Service & Chat Log</h3>
+                <button id="toggleHistoryBtn" class="btn btn-dark" style="padding: 4px 8px; font-size: 12px;">🔽 Hide</button>
+            </div>
+            <div id="historyToggleWrapper" style="display: block;">
+                <div id="historyList" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 25px;"></div>
+                <button class="btn btn-pdf" id="downloadPdfBtn">📄 Download Official Maintenance Report (PDF)</button>
+            </div>
         </div>
     </div>
-
 </div>
 
-<!-- 📱 BOTTOM NAVIGATION APP MENU -->
 <div class="bottom-nav" id="bottomNav" style="display: none;">
     <div class="nav-item active" id="navGarage">
-        <span class="nav-icon">🏠</span>
-        <span>Garage</span>
+        <span class="nav-icon">🏠</span><span>Garage</span>
     </div>
     <div class="nav-item" id="navLogbook">
-        <span class="nav-icon">📘</span>
-        <span>Logbook</span>
+        <span class="nav-icon">📘</span><span>Logbook</span>
     </div>
 </div>
 
-<!-- 🛑 STRIPE PAYWALL MODAL 🛑 -->
+<!-- 🛑 NEW: CHOOSE YOUR TIER MODAL 🛑 -->
 <div id="upgradeModal">
     <div class="modal-content">
-        <h2 style="color:#ff6600; margin-top:0;">⭐ Unlock ShedLens Pro</h2>
-        <p style="color:#b8c1ec; line-height:1.5;">Get unlimited visual diagnostics, voice dictation mode, multi-bike garage management with status alerts, and exportable official service reports.</p>
+        <h2 style="color:#ff6600; margin-top:0;">Welcome to ShedLens!</h2>
+        <p style="color:#b8c1ec; line-height:1.5;">Choose your garage access level below to get started.</p>
         
-        <a href="https://buy.stripe.com/test_6oU6oAf5Xfss8dZ5ct38400" target="_blank" class="stripe-btn">
-            Upgrade Now (£24.99/yr)
-        </a>
-        
-        <br><br>
-        <button onclick="document.getElementById('upgradeModal').style.display='none'" style="background:none; border:none; color:#888; text-decoration:underline; cursor:pointer; font-size:14px; margin-top:15px;">
-            Maybe Later
-        </button>
+        <div class="tier-box">
+            <h3>ShedLens Free <span style="color:#888; font-size: 14px;">£0</span></h3>
+            <ul>
+                <li>5 Text-based AI Diagnostics per month</li>
+                <li>History & Logs are <strong>not saved</strong></li>
+                <li>Digital Vault & Checklists Locked</li>
+            </ul>
+            <button class="free-btn" onclick="continueFreeTier()">Continue with Free Tier</button>
+        </div>
+
+        <div class="tier-box" style="border-color: #ff6600;">
+            <h3 style="color:#ff6600;">ShedLens PRO ⭐️ <span style="color:#ff6600; font-size: 14px;">£24.99/yr</span></h3>
+            <ul>
+                <li>Unlimited AI Diagnostics</li>
+                <li>Voice Dictation & Photo Uploads</li>
+                <li>Save Custom Bike Profiles & Track MOTs</li>
+                <li>Unlimited Secure Vault for V5C & GPX Routes</li>
+                <li>Printable Official PDF Service Reports</li>
+            </ul>
+            <a href="https://buy.stripe.com/test_6oU6oAf5Xfss8dZ5ct38400" target="_blank" class="stripe-btn">Unlock PRO Now</a>
+        </div>
     </div>
 </div>
 
@@ -327,7 +362,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, orderBy, limit, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, orderBy, limit, getDocs, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
     const firebaseConfig = {
@@ -354,34 +389,48 @@
     let cachedLogs = [];
     let userBikes = [];
     let activeBikeId = null;
+    let freeCredits = 5; // Default free credits
 
-    // 🛠️ NEW: Tab Switching Logic
+    // Toggle logic for History & Vault
+    document.getElementById('toggleHistoryBtn').addEventListener('click', () => {
+        const w = document.getElementById('historyToggleWrapper');
+        const b = document.getElementById('toggleHistoryBtn');
+        if(w.style.display === 'none'){ w.style.display = 'block'; b.innerHTML = '🔽 Hide'; }
+        else { w.style.display = 'none'; b.innerHTML = '▶️ Show'; }
+    });
+
+    document.getElementById('toggleVaultBtn').addEventListener('click', () => {
+        const w = document.getElementById('vaultToggleWrapper');
+        const b = document.getElementById('toggleVaultBtn');
+        if(w.style.display === 'none'){ w.style.display = 'block'; b.innerHTML = '🔽 Hide'; }
+        else { w.style.display = 'none'; b.innerHTML = '▶️ Show'; }
+    });
+
+    // Navigation Tabs
     document.getElementById('navGarage').addEventListener('click', () => switchTab('garage'));
     document.getElementById('navLogbook').addEventListener('click', () => switchTab('logbook'));
 
     function switchTab(tab) {
         document.getElementById('tab-garage').classList.toggle('active', tab === 'garage');
         document.getElementById('tab-logbook').classList.toggle('active', tab === 'logbook');
-        
         document.getElementById('navGarage').classList.toggle('active', tab === 'garage');
         document.getElementById('navLogbook').classList.toggle('active', tab === 'logbook');
-        
-        window.scrollTo(0, 0); // Scroll to top when switching tabs
+        window.scrollTo(0, 0); 
     }
 
     document.getElementById('dvlaLookupBtn').addEventListener('click', () => {
         const reg = document.getElementById('garageRegPlate').value.trim();
-        if (!reg) {
-            alert("Please enter a registration plate first.");
-            return;
-        }
-        
-        alert("DVLA Integration Ready!\n\nTo make this live, you will need to register for a free DVLA Developer API Key and add a new function to your Firebase backend to bypass CORS security blocks.\n\nFor now, we will simulate a successful lookup to show you how the UI will update!");
-        
-        const mockFutureDate = new Date();
-        mockFutureDate.setFullYear(mockFutureDate.getFullYear() + 1);
-        document.getElementById('garageMotDate').value = mockFutureDate.toISOString().split('T')[0];
+        if (!reg) return alert("Please enter a registration plate first.");
+        alert("DVLA API Integration Triggered!\n\n(Mocking successful lookup for front-end testing...)");
+        const mockDate = new Date(); mockDate.setFullYear(mockDate.getFullYear() + 1);
+        document.getElementById('garageMotDate').value = mockDate.toISOString().split('T')[0];
     });
+
+    // 🛠️ NEW: Free Tier Continue Logic
+    window.continueFreeTier = function() {
+        document.getElementById('upgradeModal').style.display = 'none';
+        applyTierUI();
+    };
 
     window.checkProAccess = function(event) {
         if (!window.isProUser) {
@@ -399,34 +448,74 @@
         if (userSnap.exists()) {
             const data = userSnap.data();
             window.isProUser = data.isPro;
+            freeCredits = data.freeCredits !== undefined ? data.freeCredits : 5;
             
-            if (window.isProUser) {
-                document.getElementById('heroSection').style.display = 'none';
-                document.getElementById('bottomNav').style.display = 'flex';
-                switchTab('garage');
-                await loadUserBikes(user.uid);
-            } else {
-                document.getElementById('heroSection').style.display = 'block';
-                document.getElementById('bottomNav').style.display = 'none';
+            if (!window.isProUser) {
+                // Show modal on login if not pro
+                document.getElementById('upgradeModal').style.display = 'flex';
             }
         } else {
             await setDoc(userRef, {
                 email: user.email,
                 name: user.displayName,
                 isPro: false,
+                freeCredits: 5,
                 joinedAt: new Date()
             });
             window.isProUser = false;
-            document.getElementById('heroSection').style.display = 'block';
-            document.getElementById('bottomNav').style.display = 'none';
+            freeCredits = 5;
+            document.getElementById('upgradeModal').style.display = 'flex';
         }
 
+        applyTierUI();
+
         const stripeBtn = document.querySelector('.stripe-btn');
-        if (stripeBtn) {
-            stripeBtn.href = `https://buy.stripe.com/6oU6oAf5Xfss8dZ5ct38400?client_reference_id=${user.uid}`;
+        if (stripeBtn) stripeBtn.href = `https://buy.stripe.com/test_6oU6oAf5Xfss8dZ5ct38400?client_reference_id=${user.uid}`;
+    }
+
+    function applyTierUI() {
+        const badge = document.getElementById('tierBadge');
+        const creditDisplay = document.getElementById('creditDisplay');
+        const creditCount = document.getElementById('creditCount');
+
+        document.getElementById('heroSection').style.display = 'none';
+        document.getElementById('bottomNav').style.display = 'flex';
+        switchTab('garage');
+
+        if (window.isProUser) {
+            badge.textContent = "PRO ⭐️";
+            badge.className = "tier-badge badge-pro";
+            creditDisplay.style.display = 'none';
+            
+            document.getElementById('garageProfilePanel').style.display = 'block';
+            document.getElementById('checklistPanel').style.display = 'block';
+            document.getElementById('serviceLogPanel').style.display = 'block';
+            document.getElementById('digitalWalletPanel').style.display = 'block';
+            
+            loadUserBikes(currentUser.uid);
+            loadHistory(currentUser.uid);
+        } else {
+            badge.textContent = "FREE";
+            badge.className = "tier-badge badge-free";
+            creditDisplay.style.display = 'block';
+            creditCount.textContent = freeCredits;
+            
+            // Lock panels for free users
+            document.getElementById('garageProfilePanel').style.display = 'none';
+            document.getElementById('checklistPanel').style.display = 'none';
+            document.getElementById('serviceLogPanel').style.display = 'none';
+            document.getElementById('digitalWalletPanel').style.display = 'none';
+            
+            // Check button state
+            if (freeCredits <= 0) {
+                const btn = document.getElementById('diagnoseBtn');
+                btn.disabled = true;
+                btn.textContent = "Out of Free Credits - Upgrade to Pro";
+            }
         }
     }
 
+    // Bike Profile Logic
     async function loadUserBikes(uid) {
         const bikesRef = collection(db, "users", uid, "bikes");
         const snapshot = await getDocs(bikesRef);
@@ -446,24 +535,7 @@
         if (userBikes.length > 0) {
             selector.value = userBikes[0].id;
             selectBike(userBikes[0].id);
-        } else {
-            await addNewBike(uid, "The Mule", "Yamaha Ténéré 700 (2023)", "Icon Blue", 6150, "", "");
         }
-    }
-
-    async function addNewBike(uid, name, model, color, mileage, mot, reg) {
-        const bikesRef = collection(db, "users", uid, "bikes");
-        const newBikeDoc = await addDoc(bikesRef, {
-            bikeName: name,
-            bikeModel: model,
-            color: color,
-            mileage: Number(mileage),
-            motDate: mot,
-            bikeReg: reg || ""
-        });
-        await loadUserBikes(uid);
-        document.getElementById('bikeSelector').value = newBikeDoc.id;
-        selectBike(newBikeDoc.id);
     }
 
     function selectBike(bikeId) {
@@ -480,346 +552,83 @@
 
         if(bike.bikeModel) document.getElementById('bikeDetails').value = bike.bikeModel;
         if(bike.mileage) document.getElementById('bikeMileage').value = bike.mileage;
-
         updateStatusCard(bike);
     }
 
     function updateStatusCard(bike) {
         const card = document.getElementById('statusCard');
-        let statusHtml = '';
-        let statusClass = 'status-card healthy';
-
         if (bike.motDate) {
-            const motDate = new Date(bike.motDate);
-            const today = new Date();
-            const diffDays = Math.ceil((motDate - today) / (1000 * 60 * 60 * 24));
-
-            if (diffDays < 0) {
-                statusClass = 'status-card urgent';
-                statusHtml = `🚨 <strong>MOT Expired:</strong> ${bike.bikeName || 'Bike'} MOT expired ${Math.abs(diffDays)} days ago!`;
-            } else if (diffDays <= 30) {
-                statusClass = 'status-card warning';
-                statusHtml = `⚠️ <strong>MOT Due Soon:</strong> ${bike.bikeName || 'Bike'} MOT expires in ${diffDays} days (${bike.motDate}).`;
-            } else {
-                statusHtml = `✅ <strong>Garage Status:</strong> ${bike.bikeName || 'Bike'} MOT is valid until ${bike.motDate}. All systems nominal.`;
-            }
+            const diffDays = Math.ceil((new Date(bike.motDate) - new Date()) / (1000 * 60 * 60 * 24));
+            if (diffDays < 0) { card.className = 'status-card urgent'; card.innerHTML = `🚨 <strong>MOT Expired:</strong> ${bike.bikeName} expired!`; } 
+            else if (diffDays <= 30) { card.className = 'status-card warning'; card.innerHTML = `⚠️ <strong>MOT Due Soon:</strong> ${bike.bikeName} in ${diffDays} days.`; } 
+            else { card.className = 'status-card healthy'; card.innerHTML = `✅ <strong>Garage Status:</strong> All systems nominal.`; }
         } else {
-            statusHtml = `ℹ️ <strong>Garage Status:</strong> Set an MOT due date to track legal inspection status.`;
+            card.innerHTML = `ℹ️ <strong>Garage Status:</strong> Set an MOT due date to track status.`;
+            card.className = 'status-card healthy';
         }
-
-        card.innerHTML = statusHtml;
-        card.className = statusClass;
         card.style.display = 'block';
     }
 
-    document.getElementById('bikeSelector').addEventListener('change', (e) => {
-        if (e.target.value) selectBike(e.target.value);
-    });
-
-    document.getElementById('newBikeBtn').addEventListener('click', async () => {
-        if (!currentUser) return;
-        const name = prompt("Enter Bike Nickname (e.g., Track Weapon):", "New Bike");
-        if (!name) return;
-        await addNewBike(currentUser.uid, name, "Make / Model", "Color", 0, "", "");
-    });
-
-    document.getElementById('saveProfileBtn').addEventListener('click', async () => {
-        if (!currentUser || !activeBikeId) return;
-        try {
-            const bikeRef = doc(db, "users", currentUser.uid, "bikes", activeBikeId);
-            const bikeModelVal = document.getElementById('garageBikeModel').value;
-            const mileageVal = Number(document.getElementById('garageMileage').value);
-
-            await setDoc(bikeRef, {
-                bikeName: document.getElementById('garageBikeName').value,
-                bikeModel: bikeModelVal,
-                color: document.getElementById('garageColor').value,
-                mileage: mileageVal,
-                motDate: document.getElementById('garageMotDate').value,
-                bikeReg: document.getElementById('garageRegPlate').value.toUpperCase()
-            }, { merge: true });
-
-            document.getElementById('bikeDetails').value = bikeModelVal;
-            document.getElementById('bikeMileage').value = mileageVal;
-
-            alert("Garage Profile successfully saved!");
-            loadUserBikes(currentUser.uid);
-        } catch (e) {
-            console.error("Error saving profile: ", e);
-            alert("Error saving profile.");
-        }
-    });
-
-    document.getElementById('saveServiceBtn').addEventListener('click', async () => {
-        if (!currentUser || !window.isProUser) return;
-        const serviceType = document.getElementById('serviceTypeInput').value.trim();
-        const serviceDate = document.getElementById('serviceDateInput').value;
-        const serviceMileage = document.getElementById('serviceMileageInput').value.trim();
-        const serviceNotes = document.getElementById('serviceNotesInput').value.trim();
-
-        if (!serviceType) {
-            alert("Please enter a maintenance type.");
-            return;
-        }
-
-        try {
-            await addDoc(collection(db, "users", currentUser.uid, "garageLogs"), {
-                type: 'manual_service',
-                bike: document.getElementById('garageBikeModel').value || "My Bike",
-                query: serviceType,
-                response: serviceNotes || "No extra notes provided.",
-                date: serviceDate ? new Date(serviceDate).toLocaleDateString() : new Date().toLocaleDateString(),
-                mileage: serviceMileage || "N/A",
-                timestamp: new Date().getTime()
-            });
-
-            document.getElementById('serviceTypeInput').value = '';
-            document.getElementById('serviceMileageInput').value = '';
-            document.getElementById('serviceNotesInput').value = '';
-            alert("Service entry successfully logged! Check your Logbook tab to view it.");
-            loadHistory(currentUser.uid);
-        } catch (e) {
-            console.error("Error saving service entry: ", e);
-            alert("Error saving service entry.");
-        }
-    });
-
-    document.getElementById('uploadWalletBtn').addEventListener('click', async () => {
-        const fileInput = document.getElementById('walletFile');
-        const file = fileInput.files[0];
-        const category = document.getElementById('walletCategory').value;
-        const statusText = document.getElementById('uploadStatus');
-        
-        if (!file) {
-            statusText.style.color = "#ff4d4d";
-            statusText.innerText = "Please select a document first.";
-            return;
-        }
-
-        if (!currentUser) {
-            statusText.style.color = "#ff4d4d";
-            statusText.innerText = "You must be logged in to access the vault.";
-            return;
-        }
-
-        statusText.style.color = "#e65c00";
-        statusText.innerText = "Encrypting and uploading...";
-        
-        try {
-            const fileRef = ref(storage, `users/${currentUser.uid}/${Date.now()}_${file.name}`);
-            await uploadBytes(fileRef, file);
-            const downloadURL = await getDownloadURL(fileRef);
-            
-            await addDoc(collection(db, "users", currentUser.uid, "garageLogs"), {
-                type: "Wallet Document",
-                bike: document.getElementById('garageBikeModel').value || "My Bike",
-                category: category,
-                fileName: file.name,
-                fileURL: downloadURL,
-                query: `Uploaded: ${category} (${file.name})`,
-                response: `Document securely stored in Vault. [Click here to view/download](${downloadURL})`,
-                date: new Date().toLocaleDateString(),
-                timestamp: new Date().getTime()
-            });
-            
-            statusText.style.color = "#2ecc71";
-            statusText.innerText = "✅ Document safely secured! You can view it in the Logbook tab.";
-            fileInput.value = ""; 
-            loadHistory(currentUser.uid);
-        } catch (error) {
-            console.error("Upload failed", error);
-            statusText.style.color = "#ff4d4d";
-            statusText.innerText = "Error uploading document.";
-        }
-    });
-
-    const loginBtn = document.getElementById('loginBtn');
-    const heroLoginBtn = document.getElementById('heroLoginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const userNameDisplay = document.getElementById('userNameDisplay');
-
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            currentUser = user;
-            loginBtn.style.display = 'none';
-            logoutBtn.style.display = 'inline-block';
-            userNameDisplay.style.display = 'inline-block';
-            
-            const firstName = user.displayName ? user.displayName.split(' ')[0] : "Rider";
-            userNameDisplay.textContent = "🛖 " + firstName + "'s Garage";
-            
-            checkAndCreateUserProfile(user);
-            loadHistory(user.uid);
-        } else {
-            currentUser = null;
-            loginBtn.style.display = 'inline-block';
-            logoutBtn.style.display = 'none';
-            userNameDisplay.style.display = 'none';
-            window.isProUser = false;
-            
-            document.getElementById('heroSection').style.display = 'block';
-            document.getElementById('bottomNav').style.display = 'none';
-            document.getElementById('tab-garage').style.display = 'none';
-            document.getElementById('tab-logbook').style.display = 'none';
-        }
-    });
-
-    loginBtn.addEventListener('click', () => signInWithPopup(auth, provider).catch(e => console.error(e)));
-    heroLoginBtn.addEventListener('click', () => signInWithPopup(auth, provider).catch(e => console.error(e)));
-    logoutBtn.addEventListener('click', () => signOut(auth).catch(e => console.error(e)));
-
-    document.getElementById('photoInput').addEventListener('click', (e) => {
-        if (!window.checkProAccess(e)) return;
-    });
-
-    document.getElementById('photoInput').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        const previewContainer = document.getElementById('imagePreviewContainer');
-        const previewImage = document.getElementById('imagePreview');
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                previewImage.src = event.target.result;
-                previewContainer.style.display = 'block';
-                base64ImageData = event.target.result.split(',')[1];
-                imageMimeType = file.type;
-            }
-            reader.readAsDataURL(file);
-        } else {
-            previewContainer.style.display = 'none';
-            base64ImageData = "";
-            imageMimeType = "";
-        }
-    });
-
-    document.getElementById('micBtn').addEventListener('click', (e) => {
-        if (!window.checkProAccess(e)) return;
-        
-        const voiceBtn = document.getElementById('micBtn');
-        const queryInput = document.getElementById('issueText');
-
-        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-            alert("Voice dictation is not supported in this browser.");
-            return;
-        }
-
-        if (recognition && recognition.isStarted) {
-            recognition.stop();
-            return;
-        }
-
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = 'en-US';
-
-        recognition.onstart = function() {
-            recognition.isStarted = true;
-            voiceBtn.classList.add('listening');
-        };
-
-        recognition.onresult = function(event) {
-            if (event.results[0].isFinal) {
-                const transcript = event.results[0][0].transcript;
-                queryInput.value += (queryInput.value ? " " : "") + transcript;
-            }
-        };
-
-        recognition.onend = function() {
-            recognition.isStarted = false;
-            voiceBtn.classList.remove('listening');
-        };
-
-        recognition.onerror = function() {
-            recognition.isStarted = false;
-            voiceBtn.classList.remove('listening');
-        };
-
-        recognition.start();
-    });
-
+    // AI Logic
     document.getElementById('diagnoseBtn').addEventListener('click', async () => {
+        if (!window.isProUser && freeCredits <= 0) return document.getElementById('upgradeModal').style.display = 'flex';
+
         const bike = document.getElementById("bikeDetails").value.trim();
         const mileage = document.getElementById("bikeMileage").value.trim();
-        const motDate = document.getElementById("garageMotDate")?.value || "";
         const userQuery = document.getElementById("issueText").value.trim();
         const outputDiv = document.getElementById("output");
 
-        if (!base64ImageData && !userQuery) {
-            alert("Please type a question or upload a photo.");
-            return;
-        }
+        if (!base64ImageData && !userQuery) return alert("Please type a question or upload a photo.");
 
         outputDiv.style.display = "block";
         outputDiv.innerHTML = "<em>Analyzing request... (Connecting to AI Mechanic Brain)</em>";
 
-        let systemContext = `You are "ShedLens," an expert motorcycle mechanic specializing in MX, enduro, track, adventure, and touring bikes. `;
-        if (bike) systemContext += `The motorcycle is a: ${bike}. `;
-        if (mileage) systemContext += `Current mileage is ${mileage} miles. `;
-        if (motDate) systemContext += `MOT due date is ${motDate}. Factor this into safety and legal inspection reminders if relevant. `;
-        systemContext += `Analyze the image and request. Provide a practical, concise technical diagnosis with torque specs, safety notes, and clear instructions in Markdown. Always adapt pricing and cost estimates into the user's local regional currency (e.g., British Pounds £ for UK riders, Euros € for European riders, and US Dollars $ for US riders based on context).`;
+        let systemContext = `You are "ShedLens," an expert motorcycle mechanic. Analyze the image and request. Provide a practical technical diagnosis with torque specs in Markdown. Adapt pricing to local currency.`;
+        let parts = [{ text: `System: ${systemContext}\n\nUser Request: "${userQuery}".` }];
 
-        let parts = [];
-        let textPart = `System: ${systemContext}`;
-        if (userQuery) textPart += `\n\nUser Request: "${userQuery}".`;
-        parts.push({ text: textPart });
-
-        if (base64ImageData && imageMimeType) {
-            parts.push({
-                inlineData: {
-                    mimeType: imageMimeType,
-                    data: base64ImageData
-                }
-            });
-        }
+        if (base64ImageData && imageMimeType) parts.push({ inlineData: { mimeType: imageMimeType, data: base64ImageData } });
 
         try {
-            const url = `https://us-central1-shedlens.cloudfunctions.net/diagnoseBike`;
-            
-            const response = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contents: [{ parts: parts }] })
+            const response = await fetch(`https://us-central1-shedlens.cloudfunctions.net/diagnoseBike`, {
+                method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ parts: parts }] })
             });
 
             const data = await response.json();
-
-            if (!response.ok) {
-                outputDiv.innerHTML = `<span style="color: red;">HTTP Error ${response.status}: ${data.error ? data.error.message : JSON.stringify(data)}</span>`;
-                return;
-            }
+            if (!response.ok) return outputDiv.innerHTML = `<span style="color: red;">Error: ${data.error ? data.error.message : JSON.stringify(data)}</span>`;
 
             const answer = data.candidates[0].content.parts[0].text;
             outputDiv.innerHTML = marked.parse(answer);
             
-            if (currentUser && window.isProUser) {
-                const historyTitle = `${bike || "General Bike"} (${mileage ? mileage + ' mi' : 'No mileage'})`;
-                await saveToCloudHistory(currentUser.uid, historyTitle, userQuery || "Visual Inspection", answer);
+            if (currentUser) {
+                if (window.isProUser) {
+                    await saveToCloudHistory(currentUser.uid, `${bike || "General Bike"} (${mileage ? mileage + ' mi' : ''})`, userQuery || "Visual Inspection", answer);
+                } else {
+                    // Subtract credit for Free users
+                    freeCredits--;
+                    document.getElementById('creditCount').textContent = freeCredits;
+                    await updateDoc(doc(db, "users", currentUser.uid), { freeCredits: freeCredits });
+                    if (freeCredits <= 0) {
+                        document.getElementById('diagnoseBtn').disabled = true;
+                        document.getElementById('diagnoseBtn').textContent = "Out of Free Credits - Upgrade";
+                    }
+                }
             }
-
-        } catch (error) {
-            outputDiv.innerHTML = `<span style="color: red;">Network Error: ${error.message}</span>`;
-        }
+        } catch (error) { outputDiv.innerHTML = `<span style="color: red;">Network Error: ${error.message}</span>`; }
     });
 
     async function saveToCloudHistory(uid, bike, queryText, responseText) {
         try {
             await addDoc(collection(db, "users", uid, "garageLogs"), {
-                type: 'ai_diagnosis',
-                bike: bike,
-                query: queryText,
-                response: responseText,
-                date: new Date().toLocaleDateString(),
-                timestamp: new Date().getTime()
+                type: 'ai_diagnosis', bike: bike, query: queryText, response: responseText,
+                date: new Date().toLocaleDateString(), timestamp: new Date().getTime()
             });
             loadHistory(uid); 
-        } catch (e) {
-            console.error("Error adding to cloud database: ", e);
-        }
+        } catch (e) { console.error("Error saving log: ", e); }
     }
 
     async function loadHistory(uid) {
+        if (!window.isProUser) return; // Free users don't load history
+        
         const historyContainer = document.getElementById('historyContainer');
         const historyList = document.getElementById('historyList');
         const vaultContainer = document.getElementById('vaultContainer');
@@ -831,112 +640,65 @@
             const querySnapshot = await getDocs(q);
 
             cachedLogs = [];
-            querySnapshot.forEach((doc) => {
-                cachedLogs.push({ id: doc.id, ...doc.data() });
-            });
+            querySnapshot.forEach((doc) => cachedLogs.push({ id: doc.id, ...doc.data() }));
 
             if (cachedLogs.length === 0) {
-                historyContainer.style.display = 'none';
-                vaultContainer.style.display = 'none';
-                emptyText.style.display = 'block';
-                return;
+                historyContainer.style.display = 'none'; vaultContainer.style.display = 'none';
+                emptyText.style.display = 'block'; return;
             }
 
             emptyText.style.display = 'none';
             historyContainer.style.display = 'block';
-            historyList.innerHTML = '';
-            vaultList.innerHTML = '';
-            let vaultCount = 0;
-            let historyCount = 0;
+            historyList.innerHTML = ''; vaultList.innerHTML = '';
+            let vaultCount = 0; let historyCount = 0;
 
             cachedLogs.forEach((item) => {
                 if (item.type === 'Wallet Document') {
                     vaultCount++;
-                    
                     const vWrapper = document.createElement('div');
                     vWrapper.style.cssText = "display: flex; align-items: center; gap: 10px; background: #1c1f24; padding: 10px; border-radius: 6px; border: 1px solid #3d4450;";
 
                     const vItem = document.createElement('a');
-                    vItem.href = item.fileURL;
-                    vItem.target = "_blank";
+                    vItem.href = item.fileURL; vItem.target = "_blank";
                     vItem.style.cssText = "flex-grow: 1; color: #ff6600; text-decoration: none; font-size: 13px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;";
                     vItem.innerHTML = `📄 <strong>${item.category}</strong>: ${item.fileName || 'Document'} <span style="color:#888; float:right;">${item.date}</span>`;
                     
                     const vDeleteBtn = document.createElement('button');
-                    vDeleteBtn.innerHTML = '❌';
-                    vDeleteBtn.className = 'delete-log-btn';
-                    vDeleteBtn.title = 'Delete Document';
+                    vDeleteBtn.innerHTML = '❌'; vDeleteBtn.className = 'delete-log-btn';
                     vDeleteBtn.onclick = async (e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        if (confirm("Are you sure you want to remove this document from the vault?")) {
-                            try {
-                                await deleteDoc(doc(db, "users", uid, "garageLogs", item.id));
-                                loadHistory(uid); 
-                            } catch (err) {
-                                console.error("Error deleting document:", err);
-                                alert("Failed to delete document.");
-                            }
-                        }
+                        e.stopPropagation(); e.preventDefault();
+                        if (confirm("Delete document from vault?")) { await deleteDoc(doc(db, "users", uid, "garageLogs", item.id)); loadHistory(uid); }
                     };
 
-                    vWrapper.appendChild(vItem);
-                    vWrapper.appendChild(vDeleteBtn);
+                    vWrapper.appendChild(vItem); vWrapper.appendChild(vDeleteBtn);
                     vaultList.appendChild(vWrapper);
                 } else {
-                    // It's a Chat or Wrench Log
                     historyCount++;
                     const div = document.createElement('div');
                     div.className = 'history-item';
                     
-                    let label = '🤖 [AI Diagnosis]';
-                    if (item.type === 'manual_service') label = '🔧 [Wrench Log]';
-
+                    let label = item.type === 'manual_service' ? '🔧 [Wrench Log]' : '🤖 [AI Diagnosis]';
+                    
                     const headerDiv = document.createElement('div');
                     headerDiv.className = 'history-item-header';
-                    
-                    const contentDiv = document.createElement('div');
-                    contentDiv.className = 'history-item-content';
-                    contentDiv.innerHTML = `<strong>${item.bike}</strong> - <em>${label} ${item.query}</em> (${item.date})`;
+                    headerDiv.innerHTML = `<div class="history-item-content"><strong>${item.bike}</strong> - <em>${label} ${item.query}</em> (${item.date})</div>`;
                     
                     const deleteBtn = document.createElement('button');
-                    deleteBtn.innerHTML = '❌';
-                    deleteBtn.className = 'delete-log-btn';
-                    deleteBtn.title = 'Delete Log';
+                    deleteBtn.innerHTML = '❌'; deleteBtn.className = 'delete-log-btn';
                     deleteBtn.onclick = async (e) => {
-                        e.stopPropagation(); 
-                        if (confirm("Are you sure you want to delete this log?")) {
-                            try {
-                                await deleteDoc(doc(db, "users", uid, "garageLogs", item.id));
-                                loadHistory(uid); 
-                            } catch (err) {
-                                console.error("Error deleting log:", err);
-                                alert("Failed to delete log.");
-                            }
-                        }
+                        e.stopPropagation();
+                        if (confirm("Delete this log?")) { await deleteDoc(doc(db, "users", uid, "garageLogs", item.id)); loadHistory(uid); }
                     };
 
-                    headerDiv.appendChild(contentDiv);
                     headerDiv.appendChild(deleteBtn);
                     div.appendChild(headerDiv);
 
-                    // 🛠️ NEW: In-line Expansion (Accordion) for reading chats directly in the Logbook
                     const detailDiv = document.createElement('div');
-                    detailDiv.style.display = 'none';
-                    detailDiv.style.marginTop = '10px';
-                    detailDiv.style.paddingTop = '10px';
-                    detailDiv.style.borderTop = '1px dashed #3d4450';
-                    detailDiv.style.color = '#cccccc';
-                    detailDiv.innerHTML = item.type === 'manual_service' 
-                        ? `<p><strong>Mileage:</strong> ${item.mileage} miles</p><p><strong>Shed Notes:</strong><br>${item.response}</p>`
-                        : marked.parse(item.response);
+                    detailDiv.style.cssText = 'display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #3d4450; color: #cccccc;';
+                    detailDiv.innerHTML = item.type === 'manual_service' ? `<p><strong>Mileage:</strong> ${item.mileage} miles</p><p><strong>Shed Notes:</strong><br>${item.response}</p>` : marked.parse(item.response);
                     
                     div.appendChild(detailDiv);
-                    
-                    div.onclick = (e) => {
-                        if (e.target.classList.contains('delete-log-btn')) return; // Ignore if clicking delete
-                        detailDiv.style.display = detailDiv.style.display === 'none' ? 'block' : 'none';
-                    };
+                    div.onclick = (e) => { if (!e.target.classList.contains('delete-log-btn')) detailDiv.style.display = detailDiv.style.display === 'none' ? 'block' : 'none'; };
                     
                     historyList.appendChild(div);
                 }
@@ -944,98 +706,39 @@
 
             vaultContainer.style.display = vaultCount > 0 ? 'block' : 'none';
             historyContainer.style.display = historyCount > 0 ? 'block' : 'none';
-
-        } catch (e) {
-            console.error("Error reading from cloud database: ", e);
-        }
+        } catch (e) { console.error("Error reading logs: ", e); }
     }
 
-    document.getElementById('downloadPdfBtn').addEventListener('click', () => {
-        const bikeName = document.getElementById('garageBikeName').value || 'My Motorcycle';
-        const bikeModel = document.getElementById('garageBikeModel').value || document.getElementById('bikeDetails').value || 'Not Specified';
-        const color = document.getElementById('garageColor').value || 'Not Specified';
-        const mileage = document.getElementById('garageMileage').value || document.getElementById('bikeMileage').value || 'Not Specified';
-        const motDate = document.getElementById('garageMotDate').value || 'Not Set';
-        const reportDate = new Date().toLocaleDateString();
-
-        const officialLogs = cachedLogs.filter(log => log.type === 'manual_service' || log.type === 'Wallet Document');
-
-        let logsHtml = '';
-        if (officialLogs.length === 0) {
-            logsHtml = '<p>No official service logs or documents recorded yet.</p>';
+    // Auth Listeners
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            document.getElementById('loginBtn').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'inline-block';
+            document.getElementById('userNameDisplay').style.display = 'inline-flex';
+            document.getElementById('nameText').textContent = "🛖 " + (user.displayName ? user.displayName.split(' ')[0] : "Rider") + "'s Garage";
+            checkAndCreateUserProfile(user);
         } else {
-            officialLogs.forEach(log => {
-                const isManual = log.type === 'manual_service';
-                const logLabel = isManual ? 'Service Performed' : 'Document Secured';
-                
-                logsHtml += `
-                    <div style="margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">
-                        <p style="margin: 0 0 5px 0;"><strong>Date:</strong> ${log.date} | <strong>${logLabel}:</strong> ${log.query}</p>
-                        ${isManual && log.mileage !== "N/A" ? `<p style="margin: 0 0 5px 0;"><strong>Mileage at Service:</strong> ${log.mileage} miles</p>` : ''}
-                        <div style="background: #f9f9f9; padding: 10px; border-radius: 4px; font-size: 13px; color: #444; margin-top: 5px;">
-                            ${isManual ? log.response : marked.parse(log.response)}
-                        </div>
-                    </div>
-                `;
-            });
+            currentUser = null; window.isProUser = false;
+            document.getElementById('loginBtn').style.display = 'inline-block';
+            document.getElementById('logoutBtn').style.display = 'none';
+            document.getElementById('userNameDisplay').style.display = 'none';
+            document.getElementById('heroSection').style.display = 'block';
+            document.getElementById('bottomNav').style.display = 'none';
+            document.getElementById('tab-garage').style.display = 'none';
+            document.getElementById('tab-logbook').style.display = 'none';
         }
-
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>ShedLens Pro - Maintenance Report</title>
-                <style>
-                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #333; }
-                    h1 { color: #ff6600; margin-bottom: 5px; }
-                    .subtitle { font-size: 14px; color: #666; margin-bottom: 30px; }
-                    .section-title { background: #23272f; color: white; padding: 8px 12px; font-size: 15px; margin-top: 30px; border-radius: 4px; }
-                    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-                    .grid-item { background: #f8f9fa; padding: 10px; border-radius: 4px; border: 1px solid #eee; font-size: 14px; }
-                    .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #eee; padding-top: 15px; }
-                </style>
-            </head>
-            <body>
-                <h1>🔍 ShedLens Pro</h1>
-                <div class="subtitle">Official Maintenance History Report</div>
-                
-                <div class="section-title">Vehicle Profile</div>
-                <div class="grid">
-                    <div class="grid-item"><strong>Bike Name:</strong> ${bikeName}</div>
-                    <div class="grid-item"><strong>Make & Model:</strong> ${bikeModel}</div>
-                    <div class="grid-item"><strong>Color:</strong> ${color}</div>
-                    <div class="grid-item"><strong>Current Mileage:</strong> ${mileage} miles</div>
-                    <div class="grid-item"><strong>MOT Due Date:</strong> ${motDate}</div>
-                    <div class="grid-item"><strong>Report Date:</strong> ${reportDate}</div>
-                </div>
-
-                <div class="section-title">Service Log & Diagnostic History</div>
-                <div style="margin-top: 15px;">
-                    ${logsHtml}
-                </div>
-
-                <div class="footer">
-                    Generated by ShedLens - The Smart Garage Assistant | Professional Maintenance Log
-                </div>
-                <script>
-                    window.onload = function() { window.print(); }
-                <\/script>
-            </body>
-            </html>
-        `);
-        printWindow.document.close();
     });
-    </script>
 
-<!-- Service Worker Registration for PWA -->
+    document.getElementById('loginBtn').addEventListener('click', () => signInWithPopup(auth, provider));
+    document.getElementById('heroLoginBtn').addEventListener('click', () => signInWithPopup(auth, provider));
+    document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+
+</script>
+
 <script>
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('ServiceWorker registered'))
-        .catch(err => console.log('ServiceWorker failed: ', err));
-    });
+    window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW failed: ', err)); });
   }
 </script>
 </body>
