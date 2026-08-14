@@ -17,13 +17,11 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121417; color: #e0e0e0; margin: 0; padding: 20px; }
         .container { max-width: 650px; margin: 0 auto; background: #1c1f24; padding: 30px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); border: 1px solid #2d323b; }
         
-        /* 🛠️ UPDATED: Added flex-wrap and gap so the header doesn't get cramped on mobile */
         .header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d323b; padding-bottom: 15px; margin-bottom: 25px; gap: 10px; }
         .header h1 { margin: 0; font-size: 26px; display: flex; align-items: center; gap: 10px; color: #ffffff; letter-spacing: 0.5px; }
         .auth-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
         .user-name { color: #ff6600; font-weight: bold; }
         
-        /* High-Impact Hero Section (Guests Only) */
         #heroSection { text-align: center; padding: 20px 10px 30px 10px; border-bottom: 1px solid #2d323b; margin-bottom: 25px; }
         #heroSection h2 { color: #ffffff; font-size: 24px; margin-bottom: 10px; }
         #heroSection p { color: #99aab5; font-size: 15px; line-height: 1.5; margin-bottom: 20px; }
@@ -36,21 +34,24 @@
         .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: #ff6600; outline: none; }
         .input-group textarea { resize: vertical; min-height: 80px; }
 
-        /* Panels & Visual Status Cards */
         .panel { background: #23272f; border: 1px solid #3d4450; padding: 20px; border-radius: 8px; margin-bottom: 25px; display: none; }
         .panel h3 { margin-top: 0; color: #ff6600; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+        
         .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        
+        /* 🛠️ MOBILE FIX: Stacks grid items on small screens to prevent text overlap */
+        @media (max-width: 480px) {
+            .profile-grid { grid-template-columns: 1fr; gap: 10px; }
+        }
         
         .status-card { background: #1c1f24; border-left: 5px solid #ff6600; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .status-card.healthy { border-left-color: #2ecc71; color: #2ecc71; }
         .status-card.warning { border-left-color: #f1c40f; color: #f1c40f; }
         .status-card.urgent { border-left-color: #e74c3c; color: #e74c3c; background: #2c1a1a; }
 
-        /* Image Preview */
         #imagePreviewContainer { margin-top: 10px; display: none; text-align: center;}
         #imagePreview { max-width: 100%; max-height: 200px; border-radius: 6px; border: 1px solid #3d4450; padding: 5px; background: #121417;}
 
-        /* Buttons */
         .btn { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
         .btn-dark { background: #2d323b; color: white; border: 1px solid #3d4450; }
         .btn-dark:hover { background: #3d4450; }
@@ -60,7 +61,6 @@
         .btn-pdf { background: #2d323b; color: white; width: 100%; padding: 12px; font-size: 15px; margin-top: 15px; display: flex; justify-content: center; align-items: center; gap: 8px; border: 1px solid #3d4450; }
         .btn-pdf:hover { background: #3d4450; }
         
-        /* Flexbox for Textarea + Mic */
         .textarea-wrapper { position: relative; }
         .mic-btn { position: absolute; right: 10px; bottom: 10px; background: none; border: none; font-size: 20px; cursor: pointer; }
         .listening { background: #ff4444 !important; border-radius: 50%; color: white; animation: pulse 1s infinite; }
@@ -71,7 +71,6 @@
             100% { transform: scale(1); }
         }
 
-        /* AI Output Box */
         #output { margin-top: 25px; padding: 20px; background-color: #121417; border-left: 5px solid #ff6600; border-radius: 4px; font-size: 14px; line-height: 1.6; display: none; border: 1px solid #2d323b; }
         #output h1, #output h2, #output h3 { margin-top: 0; color: #ffffff; }
         #output ul, #output ol { padding-left: 20px; margin-bottom: 15px; }
@@ -81,11 +80,9 @@
 
         hr { border: 0; border-top: 1px dashed #2d323b; margin: 30px 0; }
         
-        /* History Items */
         .history-item { background: #23272f; border: 1px solid #3d4450; padding: 12px 15px; border-radius: 6px; margin-bottom: 10px; cursor: pointer; font-size: 13px; color: #cccccc; }
         .history-item:hover { border-color: #ff6600; background: #2a2e39; }
 
-        /* Upgrade Modal */
         #upgradeModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: #1c1f24; border: 1px solid #3d4450; padding: 30px; border-radius: 10px; max-width: 400px; text-align: center; font-family: sans-serif; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         .modal-content h2 { color: #ff6600; }
@@ -107,7 +104,7 @@
         </div>
     </div>
 
-    <!-- 🚀 HIGH-IMPACT MARKETING HERO (Guests Only) -->
+    <!-- 🚀 HIGH-IMPACT MARKETING HERO -->
     <div id="heroSection">
         <h2>Your AI-Powered Garage Companion</h2>
         <p>Expert diagnostic assistance and digital logbooks built for every riding discipline.</p>
@@ -131,6 +128,16 @@
                 <option value="">-- Add or Select a Bike --</option>
             </select>
         </div>
+        
+        <!-- 🛠️ NEW: Registration Plate & DVLA Check -->
+        <div class="input-group" style="margin-bottom:15px;">
+            <label style="font-size:13px;">Registration Plate (UK):</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="garageRegPlate" placeholder="e.g., AB12 CDE" style="text-transform: uppercase;">
+                <button class="btn btn-dark" id="dvlaLookupBtn" style="white-space: nowrap;">DVLA Lookup</button>
+            </div>
+        </div>
+
         <div class="profile-grid">
             <div class="input-group" style="margin-bottom:10px;">
                 <label style="font-size:13px;">Bike Nickname / Name:</label>
@@ -148,7 +155,7 @@
                 <label style="font-size:13px;">Current Mileage:</label>
                 <input type="number" id="garageMileage" placeholder="6150">
             </div>
-            <div class="input-group" style="margin-bottom:10px; grid-column: span 2;">
+            <div class="input-group" style="margin-bottom:10px; grid-column: 1 / -1;">
                 <label style="font-size:13px;">MOT Due Date:</label>
                 <input type="date" id="garageMotDate">
             </div>
@@ -241,7 +248,6 @@
 
     <hr>
 
-    <!-- 🛠️ UPDATED: Added a collapsible history wrapper and toggle button -->
     <div class="history-section" id="historyContainer" style="display: none;">
         <h3>☁️ Private Garage History & Service Log</h3>
         <p id="historyText" style="color: #99aab5; display: none;">Please sign in to view your history.</p>
@@ -306,7 +312,6 @@
     let userBikes = [];
     let activeBikeId = null;
 
-    // 🛠️ UPDATED: Added click listener for the History Toggle Button
     document.getElementById('toggleHistoryBtn').addEventListener('click', () => {
         const wrapper = document.getElementById('historyToggleWrapper');
         const btn = document.getElementById('toggleHistoryBtn');
@@ -317,6 +322,23 @@
             wrapper.style.display = 'none';
             btn.innerHTML = '▶️ Show History';
         }
+    });
+
+    // 🛠️ NEW: Mock DVLA Lookup Function
+    document.getElementById('dvlaLookupBtn').addEventListener('click', () => {
+        const reg = document.getElementById('garageRegPlate').value.trim();
+        if (!reg) {
+            alert("Please enter a registration plate first.");
+            return;
+        }
+        
+        // Simulating the future backend call
+        alert("DVLA Integration Ready!\n\nTo make this live, you will need to register for a free DVLA Developer API Key and add a new function to your Firebase backend to bypass CORS security blocks.\n\nFor now, we will simulate a successful lookup to show you how the UI will update!");
+        
+        // Mocking a successful return date
+        const mockFutureDate = new Date();
+        mockFutureDate.setFullYear(mockFutureDate.getFullYear() + 1);
+        document.getElementById('garageMotDate').value = mockFutureDate.toISOString().split('T')[0];
     });
 
     window.checkProAccess = function(event) {
@@ -374,7 +396,6 @@
             userBikes.push(bike);
             const opt = document.createElement('option');
             opt.value = bike.id;
-            // 🛠️ UPDATED: Changed "Unnamed" to a friendlier "My Bike"
             opt.textContent = `${bike.bikeName || 'My Bike'} (${bike.bikeModel || 'Model'})`;
             selector.appendChild(opt);
         });
@@ -383,18 +404,19 @@
             selector.value = userBikes[0].id;
             selectBike(userBikes[0].id);
         } else {
-            await addNewBike(uid, "The Mule", "Yamaha Ténéré 700 (2023)", "Icon Blue", 6150, "");
+            await addNewBike(uid, "The Mule", "Yamaha Ténéré 700 (2023)", "Icon Blue", 6150, "", "");
         }
     }
 
-    async function addNewBike(uid, name, model, color, mileage, mot) {
+    async function addNewBike(uid, name, model, color, mileage, mot, reg) {
         const bikesRef = collection(db, "users", uid, "bikes");
         const newBikeDoc = await addDoc(bikesRef, {
             bikeName: name,
             bikeModel: model,
             color: color,
             mileage: Number(mileage),
-            motDate: mot
+            motDate: mot,
+            bikeReg: reg || ""
         });
         await loadUserBikes(uid);
         document.getElementById('bikeSelector').value = newBikeDoc.id;
@@ -411,6 +433,7 @@
         document.getElementById('garageColor').value = bike.color || '';
         document.getElementById('garageMileage').value = bike.mileage || '';
         document.getElementById('garageMotDate').value = bike.motDate || '';
+        document.getElementById('garageRegPlate').value = bike.bikeReg || '';
 
         if(bike.bikeModel) document.getElementById('bikeDetails').value = bike.bikeModel;
         if(bike.mileage) document.getElementById('bikeMileage').value = bike.mileage;
@@ -454,7 +477,7 @@
         if (!currentUser) return;
         const name = prompt("Enter Bike Nickname (e.g., Track Weapon):", "New Bike");
         if (!name) return;
-        await addNewBike(currentUser.uid, name, "Make / Model", "Color", 0, "");
+        await addNewBike(currentUser.uid, name, "Make / Model", "Color", 0, "", "");
     });
 
     document.getElementById('saveProfileBtn').addEventListener('click', async () => {
@@ -469,7 +492,8 @@
                 bikeModel: bikeModelVal,
                 color: document.getElementById('garageColor').value,
                 mileage: mileageVal,
-                motDate: document.getElementById('garageMotDate').value
+                motDate: document.getElementById('garageMotDate').value,
+                bikeReg: document.getElementById('garageRegPlate').value.toUpperCase()
             }, { merge: true });
 
             document.getElementById('bikeDetails').value = bikeModelVal;
@@ -579,7 +603,6 @@
             logoutBtn.style.display = 'inline-block';
             userNameDisplay.style.display = 'inline-block';
             
-            // 🛠️ UPDATED: Added a hut icon and split the name to grab just the First Name to save screen space
             const firstName = user.displayName ? user.displayName.split(' ')[0] : "Rider";
             userNameDisplay.textContent = "🛖 " + firstName + "'s Garage";
             
