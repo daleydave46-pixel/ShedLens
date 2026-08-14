@@ -214,8 +214,13 @@
         <p id="uploadStatus" style="font-size: 13px; margin-top: 10px; text-align: center; font-weight: bold;"></p>
         
         <div id="vaultContainer" style="margin-top: 20px; border-top: 1px dashed #3d4450; padding-top: 15px; display: none;">
-            <h4 style="color: #b8c1ec; margin-top: 0; font-size: 14px;">Stored in Vault:</h4>
-            <div id="vaultList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h4 style="color: #b8c1ec; margin: 0; font-size: 14px;">Stored in Vault:</h4>
+                <button id="toggleVaultBtn" class="btn btn-dark" style="padding: 4px 8px; font-size: 12px;">🔽 Hide</button>
+            </div>
+            <div id="vaultToggleWrapper" style="display: block;">
+                <div id="vaultList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            </div>
         </div>
     </div>
 
@@ -331,6 +336,18 @@
         } else {
             wrapper.style.display = 'none';
             btn.innerHTML = '▶️ Show History';
+        }
+    });
+
+    document.getElementById('toggleVaultBtn').addEventListener('click', () => {
+        const wrapper = document.getElementById('vaultToggleWrapper');
+        const btn = document.getElementById('toggleVaultBtn');
+        if (wrapper.style.display === 'none') {
+            wrapper.style.display = 'block';
+            btn.innerHTML = '🔽 Hide';
+        } else {
+            wrapper.style.display = 'none';
+            btn.innerHTML = '▶️ Show';
         }
     });
 
@@ -815,14 +832,37 @@
             cachedLogs.forEach((item) => {
                 if (item.type === 'Wallet Document') {
                     vaultCount++;
+                    
+                    const vWrapper = document.createElement('div');
+                    vWrapper.style.cssText = "display: flex; align-items: center; gap: 10px; background: #1c1f24; padding: 10px; border-radius: 6px; border: 1px solid #3d4450;";
+
                     const vItem = document.createElement('a');
                     vItem.href = item.fileURL;
                     vItem.target = "_blank";
-                    vItem.style.cssText = "display: block; background: #1c1f24; padding: 10px; border-radius: 6px; color: #ff6600; text-decoration: none; border: 1px solid #3d4450; font-size: 13px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;";
+                    vItem.style.cssText = "flex-grow: 1; color: #ff6600; text-decoration: none; font-size: 13px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;";
                     vItem.innerHTML = `📄 <strong>${item.category}</strong>: ${item.fileName || 'Document'} <span style="color:#888; float:right;">${item.date}</span>`;
-                    vItem.onmouseover = () => vItem.style.borderColor = '#ff6600';
-                    vItem.onmouseout = () => vItem.style.borderColor = '#3d4450';
-                    vaultList.appendChild(vItem);
+                    
+                    const vDeleteBtn = document.createElement('button');
+                    vDeleteBtn.innerHTML = '❌';
+                    vDeleteBtn.className = 'delete-log-btn';
+                    vDeleteBtn.title = 'Delete Document';
+                    vDeleteBtn.onclick = async (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        if (confirm("Are you sure you want to remove this document from the vault?")) {
+                            try {
+                                await deleteDoc(doc(db, "users", uid, "garageLogs", item.id));
+                                loadHistory(uid); 
+                            } catch (err) {
+                                console.error("Error deleting document:", err);
+                                alert("Failed to delete document.");
+                            }
+                        }
+                    };
+
+                    vWrapper.appendChild(vItem);
+                    vWrapper.appendChild(vDeleteBtn);
+                    vaultList.appendChild(vWrapper);
                 }
 
                 const div = document.createElement('div');
