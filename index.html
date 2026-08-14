@@ -17,9 +17,10 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121417; color: #e0e0e0; margin: 0; padding: 20px; }
         .container { max-width: 650px; margin: 0 auto; background: #1c1f24; padding: 30px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); border: 1px solid #2d323b; }
         
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d323b; padding-bottom: 15px; margin-bottom: 25px; }
+        /* 🛠️ UPDATED: Added flex-wrap and gap so the header doesn't get cramped on mobile */
+        .header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d323b; padding-bottom: 15px; margin-bottom: 25px; gap: 10px; }
         .header h1 { margin: 0; font-size: 26px; display: flex; align-items: center; gap: 10px; color: #ffffff; letter-spacing: 0.5px; }
-        .auth-controls { display: flex; align-items: center; gap: 15px; }
+        .auth-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
         .user-name { color: #ff6600; font-weight: bold; }
         
         /* High-Impact Hero Section (Guests Only) */
@@ -240,12 +241,17 @@
 
     <hr>
 
-    <!-- History Section -->
+    <!-- 🛠️ UPDATED: Added a collapsible history wrapper and toggle button -->
     <div class="history-section" id="historyContainer" style="display: none;">
         <h3>☁️ Private Garage History & Service Log</h3>
         <p id="historyText" style="color: #99aab5; display: none;">Please sign in to view your history.</p>
-        <div id="historyList"></div>
-        <button class="btn btn-pdf" id="downloadPdfBtn">📄 Download Official Maintenance Report (PDF)</button>
+        
+        <button id="toggleHistoryBtn" class="btn btn-dark" style="width: 100%; margin-bottom: 15px;">🔽 Hide History</button>
+        
+        <div id="historyToggleWrapper" style="display: block;">
+            <div id="historyList"></div>
+            <button class="btn btn-pdf" id="downloadPdfBtn">📄 Download Official Maintenance Report (PDF)</button>
+        </div>
     </div>
 </div>
 
@@ -299,6 +305,19 @@
     let cachedLogs = [];
     let userBikes = [];
     let activeBikeId = null;
+
+    // 🛠️ UPDATED: Added click listener for the History Toggle Button
+    document.getElementById('toggleHistoryBtn').addEventListener('click', () => {
+        const wrapper = document.getElementById('historyToggleWrapper');
+        const btn = document.getElementById('toggleHistoryBtn');
+        if (wrapper.style.display === 'none') {
+            wrapper.style.display = 'block';
+            btn.innerHTML = '🔽 Hide History';
+        } else {
+            wrapper.style.display = 'none';
+            btn.innerHTML = '▶️ Show History';
+        }
+    });
 
     window.checkProAccess = function(event) {
         if (!window.isProUser) {
@@ -355,7 +374,8 @@
             userBikes.push(bike);
             const opt = document.createElement('option');
             opt.value = bike.id;
-            opt.textContent = `${bike.bikeName || 'Unnamed'} (${bike.bikeModel || 'Model'})`;
+            // 🛠️ UPDATED: Changed "Unnamed" to a friendlier "My Bike"
+            opt.textContent = `${bike.bikeName || 'My Bike'} (${bike.bikeModel || 'Model'})`;
             selector.appendChild(opt);
         });
 
@@ -558,7 +578,11 @@
             loginBtn.style.display = 'none';
             logoutBtn.style.display = 'inline-block';
             userNameDisplay.style.display = 'inline-block';
-            userNameDisplay.textContent = user.displayName + "'s Garage";
+            
+            // 🛠️ UPDATED: Added a hut icon and split the name to grab just the First Name to save screen space
+            const firstName = user.displayName ? user.displayName.split(' ')[0] : "Rider";
+            userNameDisplay.textContent = "🛖 " + firstName + "'s Garage";
+            
             document.getElementById('heroSection').style.display = 'none';
             
             checkAndCreateUserProfile(user);
