@@ -177,6 +177,8 @@
                 <button class="btn btn-small" id="saveProfileBtn">Save / Update Bike</button>
                 <button class="btn btn-small" id="newBikeBtn" style="background: #2d323b;">+ Add New Bike</button>
             </div>
+            <!-- NEW MOT NOTIFICATION BUTTON -->
+            <button class="btn btn-small" id="enableNotificationsBtn" style="background: #27ae60; width: 100%; margin-top: 10px; display: none;">🔔 Enable MOT Push Notifications</button>
         </div>
 
         <!-- 📝 NEW: Pre-Ride Checklist (Pro Feature) -->
@@ -364,6 +366,8 @@
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, orderBy, limit, getDocs, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+    // NEW: Messaging Imports
+    import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDxFwpHqfw4KzYEfixot_zp31LZca9i6A4",
@@ -379,6 +383,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
     const storage = getStorage(app);
+    const messaging = getMessaging(app); // NEW: Messaging initialization
     const provider = new GoogleAuthProvider();
 
     window.isProUser = false; 
@@ -492,6 +497,9 @@
             document.getElementById('serviceLogPanel').style.display = 'block';
             document.getElementById('digitalWalletPanel').style.display = 'block';
             
+            // Show the MOT Notifications button for Pro users
+            document.getElementById('enableNotificationsBtn').style.display = 'block';
+            
             loadUserBikes(currentUser.uid);
             loadHistory(currentUser.uid);
         } else {
@@ -505,6 +513,7 @@
             document.getElementById('checklistPanel').style.display = 'none';
             document.getElementById('serviceLogPanel').style.display = 'none';
             document.getElementById('digitalWalletPanel').style.display = 'none';
+            document.getElementById('enableNotificationsBtn').style.display = 'none';
             
             // Check button state
             if (freeCredits <= 0) {
@@ -709,6 +718,45 @@
         } catch (e) { console.error("Error reading logs: ", e); }
     }
 
+    // 🛑 NEW: Request Notification Permission Logic
+    async function requestNotificationPermission() {
+        try {
+            console.log("Requesting notification permission...");
+            const permission = await Notification.requestPermission();
+            
+            if (permission === "granted") {
+                console.log("Permission granted! Fetching token...");
+                
+                // Get the unique token for this specific phone/browser
+                const currentToken = await getToken(messaging, { 
+                    vapidKey: "BKk-bfmeLf8c2UuJ19TFcXMSlP29aluxsb2YOllLPnsBnubR56RSGm5P6MVM8WmmZJL1-MNcn1MlEnRF8p7AmZw" 
+                });
+                
+                if (currentToken) {
+                    console.log("FCM token generated successfully.");
+                    
+                    // Save this token directly to the user's profile in Firestore
+                    if (currentUser) {
+                        const userRef = doc(db, "users", currentUser.uid);
+                        await updateDoc(userRef, {
+                            fcmToken: currentToken
+                        });
+                        alert("Success! Your phone is now linked for MOT reminders.");
+                        console.log("Token securely saved to the database!");
+                    }
+                } else {
+                    console.log("No registration token available. Check your VAPID key.");
+                    alert("Failed to link phone. Please check settings.");
+                }
+            } else {
+                console.log("User blocked notifications.");
+                alert("Notifications were blocked. Please allow them in your browser settings to get MOT alerts.");
+            }
+        } catch (error) {
+            console.error("Error requesting notification permission:", error);
+        }
+    }
+
     // Auth Listeners
     onAuthStateChanged(auth, (user) => {
         if (user) {
@@ -733,6 +781,9 @@
     document.getElementById('loginBtn').addEventListener('click', () => signInWithPopup(auth, provider));
     document.getElementById('heroLoginBtn').addEventListener('click', () => signInWithPopup(auth, provider));
     document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+    
+    // NEW: Attach click listener to the notifications button
+    document.getElementById('enableNotificationsBtn').addEventListener('click', requestNotificationPermission);
 
 </script>
 
